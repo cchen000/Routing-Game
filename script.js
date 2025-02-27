@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Game configuration | 游戏配置
     const gridContainer = document.getElementById('grid-container');
-    const gridSize = 11;
+    const gridSize = 10;
     let maxSticks = 10;      
-    const cellSize = 50;     
+    let cellSize = getCellSize();
     let currentMode = 'point';  // 'point' or 'stick' mode | 点模式或棍模式
     let stickCount = 0;
     let selectedPoint = null;   // Store the first selected point | 存储第一个选中的点
@@ -74,15 +74,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function createIntersectionPoints() {
         for (let y = 0; y < gridSize; y++) {
             for (let x = 0; x < gridSize; x++) {
-        const gridItem = document.createElement('div');
-        gridItem.classList.add('grid-item');
+                const gridItem = document.createElement('div');
+                gridItem.classList.add('grid-item');
+                // 修改定位逻辑，将点定位到线的交叉点上
+                // 使用 transform 来调整位置，确保点的中心在交叉点上
                 gridItem.style.left = `${x * cellSize}px`;
                 gridItem.style.top = `${y * cellSize}px`;
+                gridItem.style.transform = 'translate(-50%, -50%)';
                 gridItem.dataset.x = x;
                 gridItem.dataset.y = y;
-                // 移除直接的点击事件监听
-                // gridItem.addEventListener('click', handlePointClick);
-        gridContainer.appendChild(gridItem);
+                gridContainer.appendChild(gridItem);
             }
         }
     }
@@ -275,19 +276,19 @@ document.addEventListener('DOMContentLoaded', () => {
             stickElement.classList.add('vertical');
             stickElement.style.left = `${newStick.x1 * cellSize}px`;
             stickElement.style.top = `${newStick.y1 * cellSize}px`;
+            stickElement.style.height = `${cellSize}px`;
         } else {
             stickElement.classList.add('horizontal');
             stickElement.style.left = `${newStick.x1 * cellSize}px`;
             stickElement.style.top = `${newStick.y1 * cellSize}px`;
+            stickElement.style.width = `${cellSize}px`;
         }
         
         stickElement.id = newStick.id;
 
         // 添加点击删除功能
-        stickElement.addEventListener('click', (event) => {
-            event.stopPropagation(); // 阻止事件冒泡到网格容器
-            removeStick(newStick);
-        });
+        stickElement.addEventListener('click', handleStickRemove);
+        stickElement.addEventListener('touchend', handleStickRemove);
 
         gridContainer.appendChild(stickElement);
         stickCount++;
@@ -307,6 +308,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // 检查是否获胜
         if (checkVictory()) {
             handleVictory();
+        }
+    }
+
+    // 小棍移除处理函数
+    function handleStickRemove(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        const stickElement = event.currentTarget;
+        const stickId = stickElement.id;
+        const stick = Array.from(sticks).find(s => s.id === stickId);
+        
+        if (stick) {
+            removeStick(stick);
         }
     }
 
@@ -447,14 +462,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 添加网格容器的点击事件处理
+    // 添加触摸事件处理
+    gridContainer.addEventListener('touchstart', handleTouch, { passive: false });
+    gridContainer.addEventListener('touchend', handleTouch, { passive: false });
+
+    // 触摸事件处理函数
+    function handleTouch(event) {
+        // 阻止默认行为（防止滚动和缩放）
+        event.preventDefault();
+        
+        if (event.type === 'touchend') {
+            // 获取触摸点相对于网格容器的坐标
+            const touch = event.changedTouches[0];
+            const rect = gridContainer.getBoundingClientRect();
+            const touchX = touch.clientX - rect.left;
+            const touchY = touch.clientY - rect.top;
+            
+            // 查找最近的网格点
+            const nearestPoint = findNearestPoint(touchX, touchY);
+            if (nearestPoint) {
+                handlePointClick({ target: nearestPoint });
+            }
+        }
+    }
+
+    // 修改点击事件处理，同时支持鼠标点击和触摸
     gridContainer.addEventListener('click', (event) => {
-        // 获取相对于网格容器的点击坐标
+        // 如果是触摸设备触发的点击，忽略它（因为我们已经在 touchend 中处理了）
+        if (event.pointerType === 'touch') {
+            return;
+        }
+
         const rect = gridContainer.getBoundingClientRect();
         const clickX = event.clientX - rect.left;
         const clickY = event.clientY - rect.top;
         
-        // 查找最近的网格点
         const nearestPoint = findNearestPoint(clickX, clickY);
         if (nearestPoint) {
             handlePointClick({ target: nearestPoint });
@@ -463,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 查找最近的网格点
     function findNearestPoint(clickX, clickY) {
-        const tolerance = cellSize * 0.2; // 20% 的误差范围
+        const tolerance = cellSize * 0.4; // 20% 的误差范围
         
         // 计算最近的网格坐标
         const nearestX = Math.round(clickX / cellSize);
@@ -645,14 +687,95 @@ document.addEventListener('DOMContentLoaded', () => {
         resetGame();
     });
 
-    // 初始化游戏
+    // 修改移动端样式优化
+    function addMobileStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+            @media (max-width: 768px) {
+                .grid-item {
+                    /* 增大点击区域但保持视觉大小合适 */
+                    width: 24px;
+                    height: 24px;
+                    margin: 0;
+                    transform: translate(-50%, -50%);
+                    position: absolute;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .grid-item::after {
+                    content: '';
+                    width: 8px;
+                    height: 8px;
+                    background: currentColor;
+                    border-radius: 50%;
+                    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3); /* 添加默认阴影 */
+                    transition: all 0.2s ease;
+                }
+                
+                .grid-item.active::after {
+                    width: 12px;
+                    height: 12px;
+                    background-color: red;
+                    box-shadow: 0 0 8px rgba(255, 0, 0, 0.5); /* 激活状态的阴影 */
+                }
+
+                .grid-item:active::after {
+                    box-shadow: 0 0 12px rgba(0, 0, 0, 0.5); /* 触摸时的阴影 */
+                    transform: scale(1.2);
+                }
+                
+                .stick {
+                    /* 调整小棍的定位以匹配新的点位置 */
+                    transform-origin: center;
+                }
+                
+                .stick.horizontal {
+                    height: 4px;
+                    margin-top: -2px;
+                }
+                
+                .stick.vertical {
+                    width: 4px;
+                    margin-left: -2px;
+                }
+                
+                /* 禁用移动端的选择高亮 */
+                * {
+                    -webkit-tap-highlight-color: transparent;
+                    -webkit-touch-callout: none;
+                    -webkit-user-select: none;
+                    user-select: none;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // 在初始化游戏时添加移动端支持
     async function initGame() {
         await loadGamePoints();
         createGridLines();
         createIntersectionPoints();
         createAxisLabels();
+        addMobileStyles();  // 添加移动端样式
         resetGame();
     }
+
+    // 根据设备屏幕宽度设置cellSize
+    function getCellSize() {
+        return window.innerWidth <= 767 ? 30 : 50;
+    }
+
+    // 在初始化时设置cellSize
+    cellSize = getCellSize();
+
+    // 添加窗口大小改变的监听器
+    window.addEventListener('resize', () => {
+        cellSize = getCellSize();
+        initializeGrid(); // 重新初始化网格
+    });
 
     // 启动游戏
     initGame();
