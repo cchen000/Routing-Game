@@ -495,47 +495,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 加载游戏点位数据
     async function loadGamePoints() {
-        try {
-            console.log('Attempting to load game points data...');
-            const response = await fetch('data/game_points.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            gamePoints = await response.json();
-            console.log('Successfully loaded game points:', gamePoints);
-        } catch (error) {
-            console.error('Failed to load game points:', error);
-            // 提供一个默认的游戏点位数据
-            gamePoints = {
+        // Load local gamePoints | 使用内置点位数据 (本地交互)
+        gamePoints = {
                 "easy": 
                 {
                     "maxSticks": 8,
-                    "presets": [
+                "presets": [
                     [
                         {"x": 2, "y": 2},
                         {"x": 3, "y": 5},
                         {"x": 6, "y": 3},
                         {"x": 8, "y": 7}
+                    ],
+                    [
+                        {"x": 1, "y": 1},
+                        {"x": 4, "y": 4},
+                        {"x": 7, "y": 2},
+                        {"x": 9, "y": 5}
                     ]
-                    ]
-                },
+                ]
+            },
                 "medium": 
                 {
-                    "maxSticks": 12,
-                    "presets": [
+                "maxSticks": 12,
+                "presets": [
                     [
                         {"x": 1, "y": 1},
                         {"x": 3, "y": 3},
                         {"x": 5, "y": 5},
                         {"x": 7, "y": 7},
                         {"x": 9, "y": 9}
+                    ],
+                    [
+                        {"x": 2, "y": 8},
+                        {"x": 4, "y": 6},
+                        {"x": 6, "y": 4},
+                        {"x": 8, "y": 2},
+                        {"x": 5, "y": 5}
                     ]
-                    ]
-                },
+                ]
+            },
                 "hard": 
                 {
-                    "maxSticks": 15,
-                    "presets": [
+                "maxSticks": 15,
+                "presets": [
                     [
                         {"x": 1, "y": 1},
                         {"x": 2, "y": 8},
@@ -543,12 +546,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         {"x": 7, "y": 3},
                         {"x": 8, "y": 7},
                         {"x": 9, "y": 5}
+                    ],
+                    [
+                        {"x": 2, "y": 2},
+                        {"x": 3, "y": 7},
+                        {"x": 5, "y": 5},
+                        {"x": 6, "y": 2},
+                        {"x": 8, "y": 8},
+                        {"x": 9, "y": 4}
                     ]
-                    ]
-                }
-            };
-            console.log('Using fallback game points data');
-        }
+                ]
+            }
+        };
+        console.log('Game points data loaded');
     }
 
     // 根据难度随机选择并激活点
