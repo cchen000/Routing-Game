@@ -1,25 +1,27 @@
-/* Game container layout | 游戏容器布局 */
+/* ==================== 游戏布局 | Game Layout ==================== */
+/* 游戏容器布局 | Game container layout */
 .game-container {
     position: relative;
     margin: 20px auto;
     width: max-content;
     padding-left: 40px;   /* 增加左侧间距，从30px改为40px */
-    padding-bottom: 30px; /* Space for x-axis labels | x轴标签预留空间 */
+    padding-bottom: 30px; /* x轴标签预留空间 | Space for x-axis labels */
 }
 
-/* Grid container | 网格容器 */
+/* 网格容器 | Grid container */
 #grid-container {
     position: relative;
-    width: 500px;   /* 10 intervals * 50px */
-    height: 500px;  /* 10 intervals * 50px */
+    width: 500px;   /* 10个间隔 * 50px | 10 intervals * 50px */
+    height: 500px;  /* 10个间隔 * 50px | 10 intervals * 50px */
     margin: 0;
     background-color: rgb(255, 255, 255);
 }
 
-/* Grid lines | 网格线样式 */
+/* ==================== 网格元素 | Grid Elements ==================== */
+/* 网格线样式 | Grid lines */
 .grid-line {
     position: absolute;
-    background-color: #666;
+    background-color: #ddd; /* 更浅的颜色 */
 }
 
 .grid-line.horizontal {
@@ -32,26 +34,31 @@
     height: 100%;
 }
 
-/* Grid points | 网格点样式 */
+/* 网格点样式 | Grid points */
 .grid-item {
     position: absolute;
     width: 16px;
     height: 16px;
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    background-color: #ccc;
+    background-color: #333; /* 更深的颜色 */
     cursor: pointer;
     z-index: 2;
+    transition: all 0.2s ease; /* 添加过渡效果 */
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.2); /* 添加阴影 */
+
 }
 
-/* Active point style | 激活点样式 */
+/* 激活点样式 | Active point style */
 .grid-item.active {
-    background-color: red;
+    background-color: #e74c3c; /* 更现代的红色 */
     width: 16px;
     height: 16px;
+    box-shadow: 0 0 6px rgba(231, 76, 60, 0.5); /* 红色阴影 */
+
 }
 
-/* Stick styles | 小棍样式 */
+/* 小棍样式 | Stick styles */
 .stick {
     position: absolute;
     background-color: #2196F3;
@@ -69,7 +76,8 @@
     margin-left: -2px;
 }
 
-/* Hover effects | 悬停效果 */
+/* ==================== 交互效果 | Interaction Effects ==================== */
+/* 悬停效果 | Hover effects */
 .stick:hover {
     background-color: #A0522D;
     transform-origin: left center;
@@ -101,7 +109,8 @@
     box-shadow: 0 0 6px rgba(25, 118, 210, 0.5);
 }
 
-/* Status panel | 状态面板 */
+/* ==================== 状态面板 | Status Panel ==================== */
+/* 状态面板 | Status panel */
 .status-panel {
     background-color: #f5f5f5;
     padding: 20px;
@@ -112,22 +121,166 @@
     margin: 0 auto;
 }
 
+/* 图形化状态面板样式 | Graphical status panel */
+.status-icons {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 15px;
+    padding: 8px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    width: 100%;
+    table-layout: fixed;
+}
+
+/* 状态项 | Status item */
+.status-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    height: 75px;
+    justify-content: space-between;
+    flex: 1;
+    margin: 0 5px;
+}
+
+.status-item:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+/* 激活状态样式 | Active state style */
+.status-item.active {
+    background-color: #f0f8ff;
+    box-shadow: 0 0 8px rgba(74, 144, 226, 0.5);
+    transform: translateY(-2px);
+}
+
+/* 图标容器 | Icon container */
+.status-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 35px;
+    width: 35px;
+    margin-bottom: 5px;
+}
+
+.status-icon {
+    position: relative;
+}
+
+/* 状态值 | Status value */
+.status-value {
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 红点图标 | Red point icon */
+.point-icon {
+    background-color: #e74c3c;
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(231, 76, 60, 0.5);
+    width: 20px;
+    height: 20px;
+}
+
+/* 小棍图标 | Stick icon */
+.stick-icon {
+    background-color: #4a90e2;
+    width: 28px;
+    height: 5px;
+    border-radius: 3px;
+    box-shadow: 0 0 6px rgba(74, 144, 226, 0.5);
+}
+
+/* 状态标签 | Status label */
+.status-label {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 5px;
+    /* 确保标签与图标容器对齐 */
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 剩余小棍容器 | Remaining sticks container */
+#remaining-sticks-item {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#remaining-sticks-item:hover {
+    background-color: rgba(74, 144, 226, 0.1);
+    transform: scale(1.05);
+}
+
+#remaining-sticks-item:active {
+    transform: scale(0.95);
+}
+
+#remaining-sticks-item .progress-bar {
+    transition: all 0.3s ease;
+}
+
+#remaining-sticks-item:hover .progress-bar {
+    filter: brightness(1.2);
+}
+
+/* 进度条 | Progress bar */
+.progress-bar {
+    width: 35px;
+    height: 8px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0;
+    position: relative;
+    --progress-width: 0%;
+    --progress-gradient: linear-gradient(to right, #4a90e2, #27ae60);
+}
+
+.progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: var(--progress-width);
+    background: var(--progress-gradient);
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+#remaining-sticks {
+    font-weight: bold;
+}
+
+/* 自由模式设置 | Free mode settings */
+.free-mode #remaining-sticks-item {
+    display: none;
+}
+
 .status-panel p {
     margin: 10px 0;
     font-size: 16px;
     color: #333;
 }
 
-#current-points {
-    font-weight: bold;
-    color: #2196F3;
-}
-
-#remaining-points {
-    font-weight: bold;
-    color: #4CAF50;
-}
-
+/* ==================== 按钮样式 | Button Styles ==================== */
+/* 模式按钮 | Mode button */
 .mode-button {
     padding: 10px 15px;
     margin: 10px 0;
@@ -155,18 +308,23 @@
     opacity: 0.9;
 }
 
+/* ==================== 网格点状态 | Grid Point States ==================== */
+/* 相邻点 | Adjacent point */
 .grid-item.adjacent {
     background-color: rgba(33, 150, 243, 0.5);
     width: 16px;
     height: 16px;
 }
 
+/* 选中点 | Selected point */
 .grid-item.selected {
     background-color: #2196F3;
     width: 16px;
     height: 16px;
 }
 
+/* ==================== 表单元素 | Form Elements ==================== */
+/* 难度选择器 | Difficulty selector */
 .difficulty-select {
     width: 100%;
     padding: 8px;
@@ -176,6 +334,44 @@
     font-size: 14px;
 }
 
+/* 游戏编号容器 | Game number container */
+.game-number-container {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    padding: 5px;
+    background-color: #f8f8f8;
+    border-radius: 4px;
+}
+
+.game-number-container label {
+    margin-right: 10px;
+    color: #333;
+    font-size: 14px;
+}
+
+.game-number-input {
+    width: 60px;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.game-number-input:focus {
+    outline: none;
+    border-color: #2196F3;
+    box-shadow: 0 0 3px rgba(33, 150, 243, 0.3);
+}
+
+.game-number-total {
+    margin-left: 5px;
+    color: #666;
+    font-size: 14px;
+}
+
+/* 重新开始按钮 | Restart button */
 #restart-button {
     margin-bottom: 20px;
     background-color: #2196F3;
@@ -186,7 +382,8 @@
     background-color: #1976D2;
 }
 
-/* 坐标轴样式 */
+/* ==================== 坐标轴 | Coordinate Axes ==================== */
+/* x轴 | X-axis */
 .x-axis {
     position: absolute;
     left: 30px;
@@ -200,6 +397,7 @@
     text-align: center;
 }
 
+/* y轴 | Y-axis */
 .y-axis {
     position: absolute;
     top: 0;
@@ -220,7 +418,8 @@
     color: #333;
 }
 
-/* Rules panel | 规则面板 */
+/* ==================== 规则面板 | Rules Panel ==================== */
+/* 规则面板 | Rules panel */
 .rules-panel {
     background-color: #fff;
     padding: 20px;
@@ -238,6 +437,7 @@
     padding-bottom: 10px;
 }
 
+/* 规则部分 | Rule section */
 .rule-section {
     margin-bottom: 20px;
 }
@@ -266,7 +466,8 @@
     list-style-type: decimal;
 }
 
-/* 修改容器样式以适应响应式布局 */
+/* ==================== 响应式布局 | Responsive Layout ==================== */
+/* 容器样式 | Container style */
 .container {
     display: flex;
     flex-direction: column;
@@ -276,7 +477,7 @@
     padding: 0 20px;
 }
 
-/* 响应式布局 */
+/* 大屏幕适配 | Large screen adaptation (≥1024px) */
 @media (min-width: 1024px) {
     .container {
         flex-direction: row;
@@ -296,7 +497,7 @@
     }
 }
 
-/* 中等屏幕适配 */
+/* 中等屏幕适配 | Medium screen adaptation (768px-1023px) */
 @media (max-width: 1023px) and (min-width: 768px) {
     .container {
         gap: 20px;
@@ -308,8 +509,9 @@
     }
 }
 
-/* 小屏幕适配 */
+/* 小屏幕适配 | Small screen adaptation (<768px) */
 @media (max-width: 767px) {
+    /* 容器调整 | Container adjustments */
     .container {
         gap: 5px;
         padding: 10px;
@@ -322,35 +524,77 @@
     }
 
     #grid-container {
-        width: 300px;  /* 10 intervals * 30px */
-        height: 300px;  /* 10 intervals * 30px */
+        width: 320px;  /* 调整为更合适的大小 */
+        height: 320px;
         background-color: #ffffff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05); /* 添加轻微阴影 */
+        border-radius: 4px; /* 添加圆角 */
     }
 
-    /* 调整网格线间距和样式 */
+    /* 状态图标适配 | Status icons adaptation */
+    .status-icons {
+        flex-wrap: wrap;
+        padding: 5px;
+    }
+
+    .status-item {
+        padding: 5px 8px;
+        height: 65px;
+    }
+
+    .status-icon-container {
+        height: 30px;
+        width: 30px;
+        margin-bottom: 3px;
+    }
+    
+    .status-icon {
+        transform: scale(0.85);
+    }
+    
+    .stick-icon {
+        width: 22px;
+        height: 4px;
+    }
+    
+    .progress-bar {
+        width: 30px;
+        height: 6px;
+    }
+    
+    .status-value {
+        font-size: 15px;
+        height: 22px;
+    }
+    
+    #remaining-sticks-item {
+        height: 65px;
+    }
+
+    /* 网格线调整 | Grid line adjustments */
     .grid-line.horizontal {
         width: 100%;
         height: 1px;
-        background-color: #999;
+        background-color: #e0e0e0; /* 更浅的颜色 */
     }
 
     .grid-line.vertical {
         width: 1px;
         height: 100%;
-        background-color: #999;
+        background-color: #e0e0e0;
     }
 
-    /* 优化触摸区域 */
+    /* 触摸区域优化 | Touch area optimization */
     .grid-item {
-        width: 30px;  /* 更大的触摸区域 */
-        height: 30px;
+        width: 24px;  /* 更合适的触摸区域 */
+        height: 24px;
         background-color: rgba(0, 0, 0, 0.03);
         border-radius: 50%;
         transform: translate(-50%, -50%);
         transition: all 0.2s ease;
     }
 
-    /* 实际显示的点 */
+    /* 实际显示的点 | Actual displayed point */
     .grid-item::after {
         content: '';
         position: absolute;
@@ -365,7 +609,7 @@
         box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
     }
 
-    /* 触摸状态优化 */
+    /* 触摸状态 | Touch state */
     .grid-item:active {
         background-color: rgba(0, 0, 0, 0.08);
     }
@@ -375,7 +619,7 @@
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
     }
 
-    /* 激活状态优化 */
+    /* 激活状态 | Active state */
     .grid-item.active::after {
         width: 14px;
         height: 14px;
@@ -383,7 +627,7 @@
         box-shadow: 0 0 8px rgba(255, 68, 68, 0.4);
     }
 
-    /* 相邻点优化 */
+    /* 相邻点 | Adjacent point */
     .grid-item.adjacent::after {
         width: 12px;
         height: 12px;
@@ -391,7 +635,7 @@
         box-shadow: 0 0 6px rgba(33, 150, 243, 0.3);
     }
 
-    /* 选中点优化 */
+    /* 选中点 | Selected point */
     .grid-item.selected::after {
         width: 14px;
         height: 14px;
@@ -399,7 +643,7 @@
         box-shadow: 0 0 8px rgba(33, 150, 243, 0.5);
     }
 
-    /* 小棍样式优化 */
+    /* 小棍样式 | Stick style */
     .stick {
         background-color: #2196F3;
         box-shadow: 0 0 4px rgba(33, 150, 243, 0.3);
@@ -415,7 +659,7 @@
         margin-left: -2px;
     }
 
-    /* 坐标轴优化 */
+    /* 坐标轴调整 | Coordinate axes adjustment */
     .x-axis {
         width: 300px;
         bottom: 5px;
@@ -433,18 +677,42 @@
         font-weight: 500;
     }
 
+    /* 面板调整 | Panel adjustments */
     .rules-panel, .status-panel {
         font-size: 14px;
         margin: 10px 0;
     }
 
+    /* 按钮调整 | Button adjustments */
     .mode-button {
         padding: 8px 12px;
         font-size: 12px;
     }
+
+    /* 游戏编号调整 | Game number adjustments */
+    .game-number-container {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .game-number-input {
+        width: 50px;
+        font-size: 12px;
+    }
+    
+    .game-number-container label,
+    .game-number-total {
+        font-size: 12px;
+    }
+
+    #remaining-sticks-item {
+        height: 65px;
+    }
 }
 
-/* 触摸反馈动画 */
+/* ==================== 动画效果 | Animation Effects ==================== */
+/* 触摸反馈动画 | Touch feedback animation */
+
 @keyframes touch-ripple {
     0% {
         transform: translate(-50%, -50%) scale(0.5);
