@@ -46,6 +46,7 @@
     z-index: 2;
     transition: all 0.2s ease; /* 添加过渡效果 */
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.2); /* 添加阴影 */
+
 }
 
 /* 激活点样式 | Active point style */
@@ -54,6 +55,7 @@
     width: 16px;
     height: 16px;
     box-shadow: 0 0 6px rgba(231, 76, 60, 0.5); /* 红色阴影 */
+
 }
 
 /* 小棍样式 | Stick styles */
@@ -710,6 +712,7 @@
 
 /* ==================== 动画效果 | Animation Effects ==================== */
 /* 触摸反馈动画 | Touch feedback animation */
+
 @keyframes touch-ripple {
     0% {
         transform: translate(-50%, -50%) scale(0.5);

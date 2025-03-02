@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Game configuration | 游戏配置
     const gridContainer = document.getElementById('grid-container');
-    const gridSize = 11;
+    const gridSize = 10;
     let maxSticks = 10;      
     let cellSize = getCellSize();
     let currentMode = 'point';  // 'point' or 'stick' mode | 点模式或棍模式
@@ -776,7 +776,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 查找最近的网格点
     function findNearestPoint(clickX, clickY) {
         const tolerance = cellSize * 0.5; // 调整为更小的误差范围
-        
+
         // 计算最近的网格坐标
         const nearestX = Math.round(clickX / cellSize);
         const nearestY = Math.round(clickY / cellSize);
@@ -1139,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // 设置初始模式
         currentMode = currentDifficulty === 'free' ? 'point' : 'stick';
-        
+     
         resetGame();
         updateStatusPanel(); // 确保状态面板正确显示
     }
@@ -1156,6 +1156,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return 50; // 大屏幕设备
         }
     }
+
 
     // 在初始化时设置cellSize
     cellSize = getCellSize();
