@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMode = 'point';  // 'point' or 'stick' mode | 点模式或棍模式
     let stickCount = 0;
     let selectedPoint = null;   // Store the first selected point | 存储第一个选中的点
+    let currentGameNumber = 1;  // 当前游戏编号
     
     const sticks = new Set();  // Store stick information | 存储小棍信息
     let gamePoints = null;     // Store game point presets | 存储预设点位数据
@@ -92,13 +93,29 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateStatusPanel() {
         const currentPoints = document.querySelectorAll('.grid-item.active').length;
         const usedSticks = sticks.size;
-        const remainingSticks = maxSticks - usedSticks;
         
         document.getElementById('current-points').textContent = currentPoints;
         document.getElementById('used-sticks').textContent = usedSticks;
-        document.getElementById('remaining-sticks').textContent = remainingSticks;
-        document.getElementById('mode-button').textContent = 
-            currentMode === 'point' ? '设置高亮点模式' : '连接小棍模式';
+
+        // 在自由模式下不显示剩余小棍数量
+        const remainingSticks = document.getElementById('remaining-sticks');
+        const remainingLabel = document.querySelector('.status-panel p:last-child');
+        
+        if (currentDifficulty === 'free') {
+            remainingLabel.style.display = 'none';
+        } else {
+            remainingLabel.style.display = 'block';
+            remainingSticks.textContent = maxSticks - usedSticks;
+        }
+
+        const modeButton = document.getElementById('mode-button');
+        // 在非自由模式下禁用模式切换按钮
+        if (currentDifficulty !== 'free') {
+            modeButton.style.display = 'none';
+        } else {
+            modeButton.style.display = 'block';
+            modeButton.textContent = currentMode === 'point' ? '设置高亮点模式' : '连接小棍模式';
+        }
     }
 
     // 检查两点是否相邻
@@ -250,9 +267,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500); // 延迟显示alert，让音效先播放
     }
 
+    // 清除所有相邻点的高亮效果
+    function clearAllAdjacentHighlights() {
+        document.querySelectorAll('.grid-item.adjacent').forEach(point => {
+            point.classList.remove('adjacent');
+        });
+    }
+
+    // 修改点的状态切换函数
+    function togglePoint(event) {
+        const point = event.target;
+        point.classList.toggle('active');
+        clearAllAdjacentHighlights(); // 清理所有高亮效果
+        updateStatusPanel();
+    }
+
     // 修改小棍的创建函数
     function createStick(point1, point2) {
-        if (stickCount >= maxSticks) {
+        // 在非自由模式下检查小棍数量限制
+        if (currentDifficulty !== 'free' && stickCount >= maxSticks) {
             alert(`最多只能使用 ${maxSticks} 个小棍`);
             return;
         }
@@ -293,15 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gridContainer.appendChild(stickElement);
         stickCount++;
 
-        // 清除所有相邻点的高亮效果
-        document.querySelectorAll('.grid-item.adjacent').forEach(point => {
-            point.classList.remove('adjacent');
-        });
-
-        // 如果当前有选中的点，重新计算并显示其相邻点
-        if (selectedPoint) {
-            highlightAdjacentPoints(selectedPoint, true);
-        }
+        clearAllAdjacentHighlights(); // 清理所有高亮效果
 
         updateStatusPanel();
 
@@ -337,17 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         stickCount--;
-
-        // 清除所有相邻点的高亮效果
-        document.querySelectorAll('.grid-item.adjacent').forEach(point => {
-            point.classList.remove('adjacent');
-        });
-
-        // 如果当前有选中的点，重新计算并显示其相邻点
-        if (selectedPoint) {
-            highlightAdjacentPoints(selectedPoint, true);
-        }
-
+        clearAllAdjacentHighlights(); // 删除小棍时清理所有高亮效果
         updateStatusPanel();
     }
 
@@ -389,33 +404,33 @@ document.addEventListener('DOMContentLoaded', () => {
     function handlePointClick(event) {
         const point = event.target;
         
-        if (currentMode === 'point') {
+        // 只在自由模式下允许切换点的状态
+        if (currentMode === 'point' && currentDifficulty === 'free') {
             togglePoint(event);
         } else if (currentMode === 'stick') {
             if (selectedPoint === null) {
                 selectedPoint = point;
                 point.classList.add('selected');
-                highlightAdjacentPoints(point, true);  // 高亮相邻点
+                highlightAdjacentPoints(point, true);
             } else {
                 if (point === selectedPoint) {
-                    // 取消选择
+                    // 取消选择当前点
                     selectedPoint.classList.remove('selected');
-                    highlightAdjacentPoints(selectedPoint, false);  // 取消高亮
+                    clearAllAdjacentHighlights();
                     selectedPoint = null;
                 } else if (arePointsAdjacent(selectedPoint, point)) {
                     if (!hasStickBetween(selectedPoint, point)) {
                         createStick(selectedPoint, point);
                     }
                     selectedPoint.classList.remove('selected');
-                    highlightAdjacentPoints(selectedPoint, false);  // 取消高亮
                     selectedPoint = null;
                 } else {
-                    // 如果选择的点不相邻，取消第一个选择，选中新的点
+                    // 选择新的点
                     selectedPoint.classList.remove('selected');
-                    highlightAdjacentPoints(selectedPoint, false);  // 取消之前的高亮
+                    clearAllAdjacentHighlights();
                     selectedPoint = point;
                     point.classList.add('selected');
-                    highlightAdjacentPoints(point, true);  // 高亮新的相邻点
+                    highlightAdjacentPoints(point, true);
                 }
             }
         }
@@ -428,15 +443,9 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedPoint.classList.remove('selected');
             selectedPoint = null;
         }
+        clearAllAdjacentHighlights(); // 切换模式时清理所有高亮效果
         updateStatusPanel();
     });
-
-    // 修改点的状态切换函数
-    function togglePoint(event) {
-        const point = event.target;
-        point.classList.toggle('active');
-        updateStatusPanel(); // 更新状态显示
-    }
 
     // 生成坐标轴标签
     function createAxisLabels() {
@@ -537,76 +546,100 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 加载游戏点位数据
     async function loadGamePoints() {
-        // Load local gamePoints | 使用内置点位数据 (本地交互)
+        if (window.GAME_POINTS_DATA) {
+            gamePoints = window.GAME_POINTS_DATA;
+            console.log('从全局变量加载游戏点位数据成功');
+        } else {
+            console.error('未找到游戏点位数据');
+            useDefaultGamePoints();
+        }
+    }
+
+    // 修改使用默认游戏点位数据的函数
+    function useDefaultGamePoints() {
         gamePoints = {
-                "easy": 
-                {
-                    "maxSticks": 8,
+            "easy": {
+                "maxSticks": 8,
                 "presets": [
                     [
                         {"x": 2, "y": 2},
-                        {"x": 3, "y": 5},
-                        {"x": 6, "y": 3},
-                        {"x": 8, "y": 7}
+                        {"x": 3, "y": 5}
                     ],
                     [
                         {"x": 1, "y": 1},
-                        {"x": 4, "y": 4},
-                        {"x": 7, "y": 2},
-                        {"x": 9, "y": 5}
+                        {"x": 4, "y": 4}
+                    ],
+                    [
+                        {"x": 5, "y": 2},
+                        {"x": 2, "y": 6}
                     ]
                 ]
             },
-                "medium": 
-                {
+            "medium": {
                 "maxSticks": 12,
                 "presets": [
                     [
                         {"x": 1, "y": 1},
                         {"x": 3, "y": 3},
-                        {"x": 5, "y": 5},
-                        {"x": 7, "y": 7},
-                        {"x": 9, "y": 9}
-                    ],
-                    [
-                        {"x": 2, "y": 8},
-                        {"x": 4, "y": 6},
-                        {"x": 6, "y": 4},
-                        {"x": 8, "y": 2},
                         {"x": 5, "y": 5}
-                    ]
-                ]
-            },
-                "hard": 
-                {
-                "maxSticks": 15,
-                "presets": [
-                    [
-                        {"x": 1, "y": 1},
-                        {"x": 2, "y": 8},
-                        {"x": 4, "y": 4},
-                        {"x": 7, "y": 3},
-                        {"x": 8, "y": 7},
-                        {"x": 9, "y": 5}
                     ],
                     [
                         {"x": 2, "y": 2},
-                        {"x": 3, "y": 7},
-                        {"x": 5, "y": 5},
-                        {"x": 6, "y": 2},
-                        {"x": 8, "y": 8},
-                        {"x": 9, "y": 4}
+                        {"x": 4, "y": 4},
+                        {"x": 6, "y": 6}
+                    ],
+                    [
+                        {"x": 3, "y": 1},
+                        {"x": 5, "y": 3},
+                        {"x": 7, "y": 5}
+                    ]
+                ]
+            },
+            "hard": {
+                "maxSticks": 15,
+                "presets": [
+                    [
+                        {"x": 1, "y": 4},
+                        {"x": 1, "y": 1},
+                        {"x": 2, "y": 7},
+                        {"x": 4, "y": 3}
+                    ],
+                    [
+                        {"x": 2, "y": 2},
+                        {"x": 4, "y": 4},
+                        {"x": 6, "y": 6},
+                        {"x": 8, "y": 8}
+                    ],
+                    [
+                        {"x": 3, "y": 1},
+                        {"x": 5, "y": 3},
+                        {"x": 7, "y": 5},
+                        {"x": 9, "y": 7}
                     ]
                 ]
             }
         };
-        console.log('Game points data loaded');
     }
 
-    // 根据难度随机选择并激活点
+    // 更新游戏编号显示
+    function updateGameNumberDisplay() {
+        const gameNumberInput = document.getElementById('game-number');
+        const gameNumberTotal = document.querySelector('.game-number-total');
+        const totalPresets = currentDifficulty === 'free' ? 1 : 
+            (gamePoints[currentDifficulty]?.presets?.length || 1);
+        
+        gameNumberInput.max = totalPresets;
+        gameNumberInput.value = currentGameNumber;
+        gameNumberTotal.textContent = `/ ${totalPresets}`;
+        
+        // 在自由模式下禁用游戏编号输入
+        gameNumberInput.disabled = currentDifficulty === 'free';
+    }
+
+    // 根据难度和游戏编号激活点
     function activateRandomPoints(difficulty) {
         console.log('Activating points for difficulty:', difficulty);
-        console.log('Current game points data:', gamePoints);
+        console.log('Current game number:', currentGameNumber);
 
         // 清除所有已激活的点
         document.querySelectorAll('.grid-item.active').forEach(point => {
@@ -626,7 +659,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const selectedPreset = presets[Math.floor(Math.random() * presets.length)];
+        // 使用游戏编号选择预设（减1是因为编号从1开始，而数组索引从0开始）
+        const selectedPreset = presets[currentGameNumber - 1] || presets[0];
         console.log('Selected preset:', selectedPreset);
 
         selectedPreset.forEach(point => {
@@ -643,10 +677,41 @@ document.addEventListener('DOMContentLoaded', () => {
         updateStatusPanel();
     }
 
-    // 重置游戏状态
+    // 添加游戏编号输入事件监听
+    document.getElementById('game-number').addEventListener('change', (event) => {
+        const newNumber = parseInt(event.target.value);
+        const maxNumber = parseInt(event.target.max);
+        
+        // 确保输入的编号在有效范围内
+        currentGameNumber = Math.max(1, Math.min(newNumber, maxNumber));
+        event.target.value = currentGameNumber;
+        
+        if (currentDifficulty !== 'free') {
+            resetGame();
+        }
+    });
+
+    // 修改难度选择事件监听
+    document.getElementById('difficulty-select').addEventListener('change', (event) => {
+        currentDifficulty = event.target.value;
+        console.log('难度更改为:', currentDifficulty);
+        
+        // 重置游戏编号
+        currentGameNumber = 1;
+        
+        // 在非自由模式下，自动切换到stick模式
+        if (currentDifficulty !== 'free') {
+            currentMode = 'stick';
+        }
+        
+        updateGameNumberDisplay();
+        resetGame();
+    });
+
+    // 修改重置游戏状态函数
     function resetGame() {
-        // 只更新最大小棍数
-        maxSticks = gamePoints[currentDifficulty].maxSticks;
+        // 更新最大小棍数（自由模式下设为Infinity）
+        maxSticks = currentDifficulty === 'free' ? Infinity : gamePoints[currentDifficulty].maxSticks;
         
         // 清除所有小棍
         sticks.clear();
@@ -658,34 +723,29 @@ document.addEventListener('DOMContentLoaded', () => {
             point.classList.remove('adjacent');
         });
         
+        // 清除所有激活的点
+        document.querySelectorAll('.grid-item.active').forEach(point => {
+            point.classList.remove('active');
+        });
+        
         // 重置选中状态
         if (selectedPoint) {
             selectedPoint.classList.remove('selected');
             selectedPoint = null;
         }
 
-        // 切换到点模式
-        currentMode = 'point';
+        // 在自由模式下默认使用点模式，其他模式使用stick模式
+        currentMode = currentDifficulty === 'free' ? 'point' : 'stick';
         
-        // 重新激活随机点
-        activateRandomPoints(currentDifficulty);
+        // 在非自由模式下加载预设点
+        if (currentDifficulty !== 'free') {
+            activateRandomPoints(currentDifficulty);
+        }
         
         // 更新显示
         updateStatusPanel();
+        updateGameNumberDisplay();
     }
-
-    // 添加难度选择事件监听
-    document.getElementById('difficulty-select').addEventListener('change', (event) => {
-        currentDifficulty = event.target.value;
-        console.log('Difficulty changed to:', currentDifficulty); // 调试信息
-        resetGame();
-    });
-
-    // 添加重新开始按钮事件监听
-    document.getElementById('restart-button').addEventListener('click', () => {
-        console.log('Restarting game with difficulty:', currentDifficulty);
-        resetGame();
-    });
 
     // 修改移动端样式优化
     function addMobileStyles() {
@@ -702,6 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    z-index: 2;
                 }
                 
                 .grid-item::after {
@@ -741,7 +802,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     margin-left: -2px;
                 }
                 
-                /* 禁用移动端的选择高亮 */
                 * {
                     -webkit-tap-highlight-color: transparent;
                     -webkit-touch-callout: none;
@@ -759,7 +819,8 @@ document.addEventListener('DOMContentLoaded', () => {
         createGridLines();
         createIntersectionPoints();
         createAxisLabels();
-        addMobileStyles();  // 添加移动端样式
+        addMobileStyles();
+        updateGameNumberDisplay();  // 初始化时更新游戏编号显示
         resetGame();
     }
 

@@ -15,9 +15,14 @@
                 <option value="easy">简易模式 | Easy</option>
                 <option value="medium">中等模式 | Medium</option>
                 <option value="hard">困难模式 | Hard</option>
+                <option value="free">自由模式 | Free Mode</option>
             </select>
+            <div class="game-number-container">
+                <label for="game-number">游戏编号：</label>
+                <input type="number" id="game-number" min="1" value="1" class="game-number-input">
+                <span class="game-number-total">/ 1</span>
+            </div>
             <button id="restart-button" class="mode-button">重新开始 | Restart</button>
-            <p>当前状态 | Current Status:</p>
             <button id="mode-button" class="mode-button active">设置高亮点模式 | Point Mode</button>
             <p>已激活点数 | Active Points: <span id="current-points">0</span></p>
             <p>已用小棍数 | Used Sticks: <span id="used-sticks">0</span></p>
@@ -50,6 +55,7 @@
                     <li>简易模式 | Easy: 8根小棍 | 8 sticks</li>
                     <li>中等模式 | Medium: 12根小棍 | 12 sticks</li>
                     <li>困难模式 | Hard: 15根小棍 | 15 sticks</li>
+                    <li>自由模式 | Free Mode: 无限制小棍，自由点位 | Unlimited sticks, free point placement</li>
                 </ul>
             </div>
             
@@ -83,6 +89,65 @@
         <source src="sounds/victory.wav" type="audio/wav">
         Your browser does not support the audio element. | 您的浏览器不支持音频元素。
     </audio>
+    
+    <!-- 添加游戏数据 -->
+    <script type="text/javascript">
+        window.GAME_POINTS_DATA = {
+            "easy": {
+                "maxSticks": 8,
+                "presets": [
+                    [
+                        {"x": 2, "y": 2},
+                        {"x": 3, "y": 5},
+                        {"x": 7, "y": 2}
+                    ],
+                    [
+                        {"x": 2, "y": 2},
+                        {"x": 3, "y": 5},
+                        {"x": 4, "y": 8}
+                    ],
+                ]
+            },
+            "medium": {
+                "maxSticks": 12,
+                "presets": [
+                    [
+                        {"x": 1, "y": 1},
+                        {"x": 3, "y": 3},
+                        {"x": 5, "y": 5},
+                        {"x": 7, "y": 7},
+                        {"x": 9, "y": 9}
+                    ],
+                    [
+                        {"x": 2, "y": 8},
+                        {"x": 4, "y": 6},
+                        {"x": 6, "y": 4},
+                        {"x": 8, "y": 2},
+                        {"x": 5, "y": 5}
+                    ]
+                ]
+            },
+            "hard": {
+                "maxSticks": 35,
+                "presets": [
+                    [
+                        {"x": 1, "y": 4},
+                        {"x": 1, "y": 1},
+                        {"x": 2, "y": 7},
+                        {"x": 4, "y": 3},
+                        {"x": 5, "y": 9},
+                        {"x": 5, "y": 0},
+                        {"x": 6, "y": 8},
+                        {"x": 7, "y": 6},
+                        {"x": 8, "y": 0},
+                        {"x": 9, "y": 9},
+                        {"x": 10, "y": 5},
+                        {"x": 10, "y": 2}
+                    ]
+                ]
+            }
+        };
+    </script>
     
     <script src="script.js"></script>
 </body>

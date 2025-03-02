@@ -176,6 +176,43 @@
     font-size: 14px;
 }
 
+/* 游戏编号容器样式 */
+.game-number-container {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    padding: 5px;
+    background-color: #f8f8f8;
+    border-radius: 4px;
+}
+
+.game-number-container label {
+    margin-right: 10px;
+    color: #333;
+    font-size: 14px;
+}
+
+.game-number-input {
+    width: 60px;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.game-number-input:focus {
+    outline: none;
+    border-color: #2196F3;
+    box-shadow: 0 0 3px rgba(33, 150, 243, 0.3);
+}
+
+.game-number-total {
+    margin-left: 5px;
+    color: #666;
+    font-size: 14px;
+}
+
 #restart-button {
     margin-bottom: 20px;
     background-color: #2196F3;
@@ -440,6 +477,21 @@
 
     .mode-button {
         padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .game-number-container {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .game-number-input {
+        width: 50px;
+        font-size: 12px;
+    }
+    
+    .game-number-container label,
+    .game-number-total {
         font-size: 12px;
     }
 }
