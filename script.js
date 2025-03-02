@@ -1,17 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Game configuration | 游戏配置
     const gridContainer = document.getElementById('grid-container');
-    const gridSize = 10;
+    const gridSize = 11;
     let maxSticks = 10;      
     let cellSize = getCellSize();
     let currentMode = 'point';  // 'point' or 'stick' mode | 点模式或棍模式
-    let stickCount = 0;
     let selectedPoint = null;   // Store the first selected point | 存储第一个选中的点
     let currentGameNumber = 1;  // 当前游戏编号
     
     const sticks = new Set();  // Store stick information | 存储小棍信息
     let gamePoints = null;     // Store game point presets | 存储预设点位数据
     let currentDifficulty = 'easy';
+    let activePoints = [];     // 存储激活的点
 
     // Difficulty settings for each level | 各难度级别的设置
     const difficultySettings = {
@@ -91,30 +91,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 更新状态面板显示
     function updateStatusPanel() {
-        const currentPoints = document.querySelectorAll('.grid-item.active').length;
-        const usedSticks = sticks.size;
-        
-        document.getElementById('current-points').textContent = currentPoints;
-        document.getElementById('used-sticks').textContent = usedSticks;
+        const currentPointsElement = document.getElementById('current-points');
+        const usedSticksElement = document.getElementById('used-sticks');
+        const remainingSticksElement = document.getElementById('remaining-sticks');
+        const remainingSticksBar = document.getElementById('remaining-sticks-bar');
+        const pointModeSelector = document.getElementById('point-mode-selector');
+        const stickModeSelector = document.getElementById('stick-mode-selector');
+        const gameContainer = document.querySelector('.game-container');
+        const remainingSticksContainer = document.getElementById('remaining-sticks-item');
 
-        // 在自由模式下不显示剩余小棍数量
-        const remainingSticks = document.getElementById('remaining-sticks');
-        const remainingLabel = document.querySelector('.status-panel p:last-child');
-        
-        if (currentDifficulty === 'free') {
-            remainingLabel.style.display = 'none';
-        } else {
-            remainingLabel.style.display = 'block';
-            remainingSticks.textContent = maxSticks - usedSticks;
+        if (currentPointsElement) {
+            // 更新activePoints数组
+            activePoints = Array.from(document.querySelectorAll('.grid-item.active'));
+            currentPointsElement.textContent = activePoints.length;
         }
 
-        const modeButton = document.getElementById('mode-button');
-        // 在非自由模式下禁用模式切换按钮
-        if (currentDifficulty !== 'free') {
-            modeButton.style.display = 'none';
-        } else {
-            modeButton.style.display = 'block';
-            modeButton.textContent = currentMode === 'point' ? '设置高亮点模式' : '连接小棍模式';
+        if (usedSticksElement) {
+            // 确保sticks是一个Set对象，并且有size属性
+            usedSticksElement.textContent = sticks.size || 0;
+        }
+
+        // 更新模式选择器的激活状态
+        if (pointModeSelector && stickModeSelector) {
+            if (currentMode === 'point') {
+                pointModeSelector.classList.add('active');
+                stickModeSelector.classList.remove('active');
+            } else {
+                pointModeSelector.classList.remove('active');
+                stickModeSelector.classList.add('active');
+            }
+        }
+
+        if (remainingSticksElement && remainingSticksBar) {
+            if (currentMode === 'stick') {
+                const maxSticks = calculateMaxSticks();
+                const remainingSticks = maxSticks - (sticks.size || 0);
+                
+                // 确保remainingSticks是一个有效数字
+                const displayValue = isFinite(remainingSticks) ? remainingSticks : '∞';
+                remainingSticksElement.textContent = displayValue;
+                
+                // 更新进度条
+                let percentage = 100;
+                if (isFinite(maxSticks) && maxSticks > 0) {
+                    percentage = (remainingSticks / maxSticks) * 100;
+                    percentage = Math.max(0, Math.min(100, percentage)); // 确保百分比在0-100之间
+                }
+                
+                remainingSticksBar.style.setProperty('--progress-width', `${percentage}%`);
+                
+                // 根据剩余百分比改变颜色
+                if (percentage < 30) {
+                    remainingSticksBar.style.setProperty('--progress-gradient', 'linear-gradient(to right, #e74c3c, #f39c12)');
+                } else {
+                    remainingSticksBar.style.setProperty('--progress-gradient', 'linear-gradient(to right, #4a90e2, #27ae60)');
+                }
+                
+                // 在自由模式下隐藏剩余小棍显示
+                if (currentDifficulty === 'free') {
+                    remainingSticksContainer.style.display = 'none';
+                } else {
+                    remainingSticksContainer.style.display = 'flex';
+                }
+            } else {
+                remainingSticksContainer.style.display = 'none';
+            }
+        }
+
+        if (gameContainer) {
+            if (currentMode === 'point') {
+                gameContainer.classList.add('point-mode');
+                gameContainer.classList.remove('stick-mode');
+            } else {
+                gameContainer.classList.add('stick-mode');
+                gameContainer.classList.remove('point-mode');
+            }
         }
     }
 
@@ -125,8 +176,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const x2 = parseInt(point2.dataset.x);
         const y2 = parseInt(point2.dataset.y);
 
-        return (Math.abs(x1 - x2) === 1 && y1 === y2) || 
-               (Math.abs(y1 - y2) === 1 && x1 === x2);
+        // 两点在同一行或同一列，且相距为1
+        return (x1 === x2 && Math.abs(y1 - y2) === 1) || 
+               (y1 === y2 && Math.abs(x1 - x2) === 1);
+    }
+
+    // 计算最大可用小棍数量
+    function calculateMaxSticks() {
+        if (currentDifficulty === 'free') {
+            // 自由模式下没有限制
+            return Infinity;
+        } else {
+            // 根据难度设置返回最大小棍数量
+            return difficultySettings[currentDifficulty]?.maxSticks || 10;
+        }
     }
 
     // 修改检查小棍存在的函数
@@ -229,34 +292,16 @@ document.addEventListener('DOMContentLoaded', () => {
      * 处理胜利事件
      */
     function handleVictory() {
-        console.log('Victory condition met!'); // 检查是否触发胜利条件
+        console.log('Victory condition met!');
         
         // 播放胜利音效
         const victorySound = document.getElementById('victory-sound');
-        console.log('Audio element:', victorySound); // 检查音频元素是否存在
         
-        // 添加音频事件监听器
-        victorySound.addEventListener('play', () => {
-            console.log('Audio started playing');
-        });
-        
-        victorySound.addEventListener('error', (e) => {
-            console.error('Audio error:', e);
-            console.error('Error code:', victorySound.error.code);
-        });
-
         // 尝试播放并捕获可能的错误
         try {
-            const playPromise = victorySound.play();
-            if (playPromise !== undefined) {
-                playPromise
-                    .then(() => {
-                        console.log('Audio playback started successfully');
-                    })
-                    .catch(error => {
-                        console.error('Playback failed:', error);
-                    });
-            }
+            victorySound.play().catch(error => {
+                console.error('Playback failed:', error);
+            });
         } catch (error) {
             console.error('Error attempting to play:', error);
         }
@@ -285,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 修改小棍的创建函数
     function createStick(point1, point2) {
         // 在非自由模式下检查小棍数量限制
-        if (currentDifficulty !== 'free' && stickCount >= maxSticks) {
+        if (currentDifficulty !== 'free' && sticks.size >= maxSticks) {
             alert(`最多只能使用 ${maxSticks} 个小棍`);
             return;
         }
@@ -318,13 +363,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         stickElement.id = newStick.id;
+        stickElement.style.backgroundColor = '#4a90e2';
+        stickElement.style.position = 'absolute';
+        stickElement.style.zIndex = '1';
 
         // 添加点击删除功能
         stickElement.addEventListener('click', handleStickRemove);
         stickElement.addEventListener('touchend', handleStickRemove);
 
         gridContainer.appendChild(stickElement);
-        stickCount++;
 
         clearAllAdjacentHighlights(); // 清理所有高亮效果
 
@@ -361,7 +408,6 @@ document.addEventListener('DOMContentLoaded', () => {
             stickElement.remove();
         }
         
-        stickCount--;
         clearAllAdjacentHighlights(); // 删除小棍时清理所有高亮效果
         updateStatusPanel();
     }
@@ -400,8 +446,226 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 检查点击位置是否在两点之间的边上
+    function findStickBetweenPoints(touchX, touchY) {
+        // 计算最近的网格坐标
+        const nearestX = Math.round(touchX / cellSize);
+        const nearestY = Math.round(touchY / cellSize);
+        
+        // 检查四个方向：水平和垂直方向
+        const directions = [
+            { dx: 1, dy: 0 },  // 向右
+            { dx: 0, dy: 1 },  // 向下
+            { dx: -1, dy: 0 }, // 向左
+            { dx: 0, dy: -1 }  // 向上
+        ];
+        
+        for (const dir of directions) {
+            // 计算相邻点的坐标
+            const x1 = nearestX;
+            const y1 = nearestY;
+            const x2 = nearestX + dir.dx;
+            const y2 = nearestY + dir.dy;
+            
+            // 确保两个点都在网格范围内
+            if (x2 >= 0 && x2 < gridSize && y2 >= 0 && y2 < gridSize) {
+                // 计算边的中点
+                const centerX = (x1 + x2) * cellSize / 2;
+                const centerY = (y1 + y2) * cellSize / 2;
+                
+                // 计算点击位置到中点的曼哈顿距离
+                const manhattanDistance = Math.abs(touchX - centerX) + Math.abs(touchY - centerY);
+                
+                // 判定区域
+                const radius = cellSize * 0.5;
+                
+                // 如果点击位置在菱形区域内
+                if (manhattanDistance <= radius) {
+                    const point1 = document.querySelector(
+                        `.grid-item[data-x="${x1}"][data-y="${y1}"]`
+                    );
+                    const point2 = document.querySelector(
+                        `.grid-item[data-x="${x2}"][data-y="${y2}"]`
+                    );
+                    
+                    if (point1 && point2) {
+                        return { point1, point2 };
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    // 修改触摸事件处理函数
+    function handleTouch(event) {
+        // 阻止默认行为（防止滚动和缩放）
+        event.preventDefault();
+        
+        const touchIndicator = document.querySelector('.touch-indicator');
+        const stickPreview = document.querySelector('.stick-preview');
+        
+        // 清除之前的定时器（如果存在）
+        if (window.touchIndicatorTimer) {
+            clearTimeout(window.touchIndicatorTimer);
+        }
+        
+        if (event.type === 'touchstart' || event.type === 'touchmove') {
+            const touch = event.touches[0];
+            const rect = gridContainer.getBoundingClientRect();
+            const touchX = touch.clientX - rect.left;
+            const touchY = touch.clientY - rect.top;
+            
+            // 更新触摸指示器位置
+            touchIndicator.style.opacity = '1';
+            touchIndicator.style.display = 'block';
+            touchIndicator.style.left = `${touchX}px`;
+            touchIndicator.style.top = `${touchY}px`;
+            
+            // 清除所有之前的高亮效果
+            clearAllAdjacentHighlights();
+            
+            // 根据当前模式处理触摸事件
+            if (currentMode === 'point' && currentDifficulty === 'free') {
+                // 点模式：查找最近的点并高亮
+                const nearestPoint = findNearestPoint(touchX, touchY);
+                if (nearestPoint) {
+                    nearestPoint.classList.add('adjacent');
+                    window.currentTouchPoint = nearestPoint;
+                } else {
+                    window.currentTouchPoint = null;
+                }
+                // 在点模式下不显示小棍预览
+                stickPreview.style.display = 'none';
+                window.currentTouchEdgePoints = null;
+            } else {
+                // 棍模式：检查是否可以在当前位置建立小棍
+                const edgePoints = findStickBetweenPoints(touchX, touchY);
+                
+                if (edgePoints) {
+                    const { point1, point2 } = edgePoints;
+                    const x1 = parseInt(point1.dataset.x);
+                    const y1 = parseInt(point1.dataset.y);
+                    const x2 = parseInt(point2.dataset.x);
+                    const y2 = parseInt(point2.dataset.y);
+                    
+                    // 高亮显示相关的点
+                    point1.classList.add('adjacent');
+                    point2.classList.add('adjacent');
+                    
+                    // 显示小棍预览
+                    stickPreview.style.display = 'block';
+                    stickPreview.style.opacity = '1';
+                    if (x1 === x2) {
+                        // 垂直小棍
+                        stickPreview.className = 'stick-preview vertical';
+                        stickPreview.style.left = `${x1 * cellSize}px`;
+                        stickPreview.style.top = `${Math.min(y1, y2) * cellSize}px`;
+                        stickPreview.style.height = `${cellSize}px`;
+                        stickPreview.style.width = '6px';
+                        stickPreview.style.marginLeft = '-3px';
+                    } else {
+                        // 水平小棍
+                        stickPreview.className = 'stick-preview horizontal';
+                        stickPreview.style.left = `${Math.min(x1, x2) * cellSize}px`;
+                        stickPreview.style.top = `${y1 * cellSize}px`;
+                        stickPreview.style.width = `${cellSize}px`;
+                        stickPreview.style.height = '6px';
+                        stickPreview.style.marginTop = '-3px';
+                    }
+                    
+                    // 存储当前触摸的边缘点，以便在touchend时使用
+                    window.currentTouchEdgePoints = edgePoints;
+                } else {
+                    stickPreview.style.display = 'none';
+                    window.currentTouchEdgePoints = null;
+                }
+            }
+            
+            // 设置1秒后开始淡出触摸指示器和小棍预览
+            window.touchIndicatorTimer = setTimeout(() => {
+                // 淡出触摸指示器
+                touchIndicator.style.opacity = '0';
+                
+                // 同时淡出小棍预览和高亮点
+                if (stickPreview.style.display === 'block') {
+                    stickPreview.style.opacity = '0';
+                }
+                
+                // 等待淡出动画完成后隐藏元素
+                setTimeout(() => {
+                    if (parseFloat(touchIndicator.style.opacity) === 0) {
+                        touchIndicator.style.display = 'none';
+                    }
+                    if (parseFloat(stickPreview.style.opacity) === 0) {
+                        stickPreview.style.display = 'none';
+                    }
+                    // 清除高亮效果
+                    clearAllAdjacentHighlights();
+                }, 300);
+            }, 500);
+            
+        } else if (event.type === 'touchend' || event.type === 'touchcancel') {
+            // 淡出触摸指示器
+            touchIndicator.style.opacity = '0';
+            
+            // 同时淡出小棍预览
+            stickPreview.style.opacity = '0';
+            
+            setTimeout(() => {
+                touchIndicator.style.display = 'none';
+                stickPreview.style.display = 'none';
+                // 清除高亮效果
+                clearAllAdjacentHighlights();
+            }, 300);
+            
+            // 在touchend时执行操作
+            if (event.type === 'touchend' && window.currentTouchEdgePoints) {
+                const { point1, point2 } = window.currentTouchEdgePoints;
+                
+                // 检查是否已经存在小棍
+                const stickExists = hasStickBetween(point1, point2);
+                
+                // 如果存在小棍，则删除；如果不存在，则创建
+                if (stickExists) {
+                    const stick = Array.from(sticks).find(s => 
+                        (s.x1 === parseInt(point1.dataset.x) && s.y1 === parseInt(point1.dataset.y) &&
+                         s.x2 === parseInt(point2.dataset.x) && s.y2 === parseInt(point2.dataset.y)) ||
+                        (s.x1 === parseInt(point2.dataset.x) && s.y1 === parseInt(point2.dataset.y) &&
+                         s.x2 === parseInt(point1.dataset.x) && s.y2 === parseInt(point1.dataset.y))
+                    );
+                    if (stick) {
+                        removeStick(stick);
+                        console.log('touchend: 小棍已删除');
+                    }
+                } else {
+                    createStick(point1, point2);
+                    console.log('touchend: 小棍已创建');
+                }
+            } else if (event.type === 'touchend' && window.currentTouchPoint && currentMode === 'point' && currentDifficulty === 'free') {
+                // 在点模式下切换点的状态
+                togglePoint({ target: window.currentTouchPoint });
+            }
+            
+            // 清除触摸指示器定时器
+            if (window.touchIndicatorTimer) {
+                clearTimeout(window.touchIndicatorTimer);
+                window.touchIndicatorTimer = null;
+            }
+            
+            // 清除存储的触摸点
+            window.currentTouchEdgePoints = null;
+            window.currentTouchPoint = null;
+        }
+    }
+
     // 修改点击处理函数
     function handlePointClick(event) {
+        // 如果是移动设备，则不处理点击事件
+        if ('ontouchstart' in window) {
+            return;
+        }
+
         const point = event.target;
         
         // 只在自由模式下允许切换点的状态
@@ -436,16 +700,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 添加模式切换按钮事件
-    document.getElementById('mode-button').addEventListener('click', () => {
-        currentMode = currentMode === 'point' ? 'stick' : 'point';
+    // 添加状态图标的点击事件处理
+    document.getElementById('point-mode-selector').addEventListener('click', () => {
+        // 只在自由模式下允许切换到点模式
+        if (currentDifficulty === 'free') {
+            currentMode = 'point';
+            if (selectedPoint) {
+                selectedPoint.classList.remove('selected');
+                selectedPoint = null;
+            }
+            clearAllAdjacentHighlights();
+            updateStatusPanel();
+        }
+    });
+    
+    document.getElementById('stick-mode-selector').addEventListener('click', () => {
+        currentMode = 'stick';
         if (selectedPoint) {
             selectedPoint.classList.remove('selected');
             selectedPoint = null;
         }
-        clearAllAdjacentHighlights(); // 切换模式时清理所有高亮效果
+        clearAllAdjacentHighlights();
         updateStatusPanel();
     });
+
+    // 添加剩余小棍容器的点击事件处理
+    document.getElementById('remaining-sticks-item').addEventListener('click', () => {
+        // 清除所有已布置的小棍
+        clearAllSticks();
+    });
+
+    // 添加清除所有小棍的函数
+    function clearAllSticks() {
+        // 清除所有小棍
+        sticks.clear();
+        document.querySelectorAll('.stick').forEach(stick => stick.remove());
+        
+        // 清除所有高亮状态
+        clearAllAdjacentHighlights();
+        
+        // 重置选中状态
+        if (selectedPoint) {
+            selectedPoint.classList.remove('selected');
+            selectedPoint = null;
+        }
+        
+        // 更新状态面板
+        updateStatusPanel();
+    }
 
     // 生成坐标轴标签
     function createAxisLabels() {
@@ -471,50 +773,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 添加触摸事件处理
-    gridContainer.addEventListener('touchstart', handleTouch, { passive: false });
-    gridContainer.addEventListener('touchend', handleTouch, { passive: false });
-
-    // 触摸事件处理函数
-    function handleTouch(event) {
-        // 阻止默认行为（防止滚动和缩放）
-        event.preventDefault();
-        
-        if (event.type === 'touchend') {
-            // 获取触摸点相对于网格容器的坐标
-            const touch = event.changedTouches[0];
-            const rect = gridContainer.getBoundingClientRect();
-            const touchX = touch.clientX - rect.left;
-            const touchY = touch.clientY - rect.top;
-            
-            // 查找最近的网格点
-            const nearestPoint = findNearestPoint(touchX, touchY);
-            if (nearestPoint) {
-                handlePointClick({ target: nearestPoint });
-            }
-        }
-    }
-
-    // 修改点击事件处理，同时支持鼠标点击和触摸
-    gridContainer.addEventListener('click', (event) => {
-        // 如果是触摸设备触发的点击，忽略它（因为我们已经在 touchend 中处理了）
-        if (event.pointerType === 'touch') {
-            return;
-        }
-
-        const rect = gridContainer.getBoundingClientRect();
-        const clickX = event.clientX - rect.left;
-        const clickY = event.clientY - rect.top;
-        
-        const nearestPoint = findNearestPoint(clickX, clickY);
-        if (nearestPoint) {
-            handlePointClick({ target: nearestPoint });
-        }
-    });
-
     // 查找最近的网格点
     function findNearestPoint(clickX, clickY) {
-        const tolerance = cellSize * 0.4; // 20% 的误差范围
+        const tolerance = cellSize * 0.5; // 调整为更小的误差范围
         
         // 计算最近的网格坐标
         const nearestX = Math.round(clickX / cellSize);
@@ -716,7 +977,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // 清除所有小棍
         sticks.clear();
         document.querySelectorAll('.stick').forEach(stick => stick.remove());
-        stickCount = 0;
         
         // 清除所有高亮状态
         document.querySelectorAll('.grid-item.adjacent').forEach(point => {
@@ -734,7 +994,7 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedPoint = null;
         }
 
-        // 在自由模式下默认使用点模式，其他模式使用stick模式
+        // 在自由模式下默认使用点模式，其他模式固定使用stick模式
         currentMode = currentDifficulty === 'free' ? 'point' : 'stick';
         
         // 在非自由模式下加载预设点
@@ -754,8 +1014,8 @@ document.addEventListener('DOMContentLoaded', () => {
             @media (max-width: 768px) {
                 .grid-item {
                     /* 增大点击区域但保持视觉大小合适 */
-                    width: 24px;
-                    height: 24px;
+                    width: 20px;
+                    height: 20px;
                     margin: 0;
                     transform: translate(-50%, -50%);
                     position: absolute;
@@ -769,37 +1029,44 @@ document.addEventListener('DOMContentLoaded', () => {
                     content: '';
                     width: 8px;
                     height: 8px;
-                    background: currentColor;
+                    background: #333;
                     border-radius: 50%;
-                    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3); /* 添加默认阴影 */
+                    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
                     transition: all 0.2s ease;
                 }
                 
                 .grid-item.active::after {
                     width: 12px;
                     height: 12px;
-                    background-color: red;
-                    box-shadow: 0 0 8px rgba(255, 0, 0, 0.5); /* 激活状态的阴影 */
+                    background-color: #e74c3c;
+                    box-shadow: 0 0 8px rgba(231, 76, 60, 0.5);
                 }
-
+                
                 .grid-item:active::after {
-                    box-shadow: 0 0 12px rgba(0, 0, 0, 0.5); /* 触摸时的阴影 */
+                    box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
                     transform: scale(1.2);
                 }
                 
                 .stick {
                     /* 调整小棍的定位以匹配新的点位置 */
                     transform-origin: center;
+                    position: absolute;
+                    background-color: #4a90e2;
+                    border-radius: 3px;
+                    z-index: 1;
+                    box-shadow: 0 0 5px rgba(74, 144, 226, 0.4);
                 }
                 
                 .stick.horizontal {
-                    height: 4px;
-                    margin-top: -2px;
+                    height: 6px;
+                    margin-top: -3px;
+                    border-radius: 3px;
                 }
                 
                 .stick.vertical {
-                    width: 4px;
-                    margin-left: -2px;
+                    width: 6px;
+                    margin-left: -3px;
+                    border-radius: 3px;
                 }
                 
                 * {
@@ -808,9 +1075,57 @@ document.addEventListener('DOMContentLoaded', () => {
                     -webkit-user-select: none;
                     user-select: none;
                 }
+                
+                .touch-indicator {
+                    position: absolute;
+                    width: 20px;
+                    height: 20px;
+                    background: rgba(74, 144, 226, 0.3);
+                    border: 2px solid #4a90e2;
+                    border-radius: 50%;
+                    pointer-events: none;
+                    transform: translate(-50%, -50%);
+                    z-index: 1000;
+                    display: none;
+                    transition: opacity 0.3s ease-out;
+                    opacity: 1;
+                }
+                
+                .stick-preview {
+                    position: absolute;
+                    background: rgba(74, 144, 226, 0.7);
+                    pointer-events: none;
+                    z-index: 999;
+                    box-shadow: 0 0 8px #4a90e2;
+                    transition: opacity 0.3s ease-out;
+                }
+                
+                .stick-preview.horizontal {
+                    height: 6px;
+                    margin-top: -3px;
+                    border-radius: 3px;
+                    width: 100%;
+                }
+                
+                .stick-preview.vertical {
+                    width: 6px;
+                    margin-left: -3px;
+                    border-radius: 3px;
+                    height: 100%;
+                }
             }
         `;
         document.head.appendChild(style);
+
+        // 创建触摸指示器元素
+        const touchIndicator = document.createElement('div');
+        touchIndicator.classList.add('touch-indicator');
+        gridContainer.appendChild(touchIndicator);
+
+        // 创建预览小棍元素
+        const stickPreview = document.createElement('div');
+        stickPreview.classList.add('stick-preview');
+        gridContainer.appendChild(stickPreview);
     }
 
     // 在初始化游戏时添加移动端支持
@@ -821,12 +1136,25 @@ document.addEventListener('DOMContentLoaded', () => {
         createAxisLabels();
         addMobileStyles();
         updateGameNumberDisplay();  // 初始化时更新游戏编号显示
+        
+        // 设置初始模式
+        currentMode = currentDifficulty === 'free' ? 'point' : 'stick';
+        
         resetGame();
+        updateStatusPanel(); // 确保状态面板正确显示
     }
 
     // 根据设备屏幕宽度设置cellSize
     function getCellSize() {
-        return window.innerWidth <= 767 ? 30 : 50;
+        if (window.innerWidth <= 480) {
+            return 28; // 小屏幕手机
+        } else if (window.innerWidth <= 767) {
+            return 32; // 大屏幕手机和小平板
+        } else if (window.innerWidth <= 1023) {
+            return 40; // 平板和小屏幕电脑
+        } else {
+            return 50; // 大屏幕设备
+        }
     }
 
     // 在初始化时设置cellSize
@@ -837,6 +1165,29 @@ document.addEventListener('DOMContentLoaded', () => {
         cellSize = getCellSize();
         initializeGrid(); // 重新初始化网格
     });
+
+    // 修改点击事件处理，同时支持鼠标点击和触摸
+    gridContainer.addEventListener('click', (event) => {
+        // 如果是触摸设备触发的点击，忽略它（因为我们已经在 touchend 中处理了）
+        if (event.pointerType === 'touch') {
+            return;
+        }
+
+        const rect = gridContainer.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const clickY = event.clientY - rect.top;
+        
+        const nearestPoint = findNearestPoint(clickX, clickY);
+        if (nearestPoint) {
+            handlePointClick({ target: nearestPoint });
+        }
+    });
+
+    // 添加触摸事件处理
+    gridContainer.addEventListener('touchstart', handleTouch, { passive: false });
+    gridContainer.addEventListener('touchmove', handleTouch, { passive: false });
+    gridContainer.addEventListener('touchend', handleTouch, { passive: false });
+    gridContainer.addEventListener('touchcancel', handleTouch, { passive: false });
 
     // 启动游戏
     initGame();
