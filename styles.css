@@ -121,17 +121,15 @@
     margin: 0 auto;
 }
 
-/* 图形化状态面板样式 | Graphical status panel */
+/* 状态图标 | Status icons */
 .status-icons {
     display: flex;
     justify-content: space-around;
-    margin-top: 15px;
-    padding: 8px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    width: 100%;
-    table-layout: fixed;
+    align-items: center;
+    padding: 10px;
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    margin-bottom: 15px;
 }
 
 /* 状态项 | Status item */
@@ -139,14 +137,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px 10px;
-    border-radius: 8px;
-    transition: all 0.2s ease;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
     cursor: pointer;
-    height: 75px;
-    justify-content: space-between;
-    flex: 1;
-    margin: 0 5px;
+    height: 70px;
 }
 
 .status-item:hover {
@@ -231,6 +226,13 @@
     transform: scale(0.95);
 }
 
+/* 添加激活状态样式 */
+#remaining-sticks-item.active {
+    background-color: #f0f8ff;
+    box-shadow: 0 0 8px rgba(74, 144, 226, 0.5);
+    transform: translateY(-2px);
+}
+
 #remaining-sticks-item .progress-bar {
     transition: all 0.3s ease;
 }
@@ -264,7 +266,7 @@
     border-radius: 4px;
 }
 
-#remaining-sticks {
+#remaining-sticks-count {
     font-weight: bold;
 }
 
@@ -369,17 +371,6 @@
     margin-left: 5px;
     color: #666;
     font-size: 14px;
-}
-
-/* 重新开始按钮 | Restart button */
-#restart-button {
-    margin-bottom: 20px;
-    background-color: #2196F3;
-    color: white;
-}
-
-#restart-button:hover {
-    background-color: #1976D2;
 }
 
 /* ==================== 坐标轴 | Coordinate Axes ==================== */
@@ -722,4 +713,17 @@
         transform: translate(-50%, -50%) scale(1);
         opacity: 0;
     }
+}
+
+/* 添加按压效果样式 */
+.pressed {
+    transform: scale(0.9);
+    opacity: 0.8;
+    transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+/* 确保状态图标有过渡效果 */
+#point-mode-selector,
+#remaining-sticks-item {
+    transition: transform 0.1s ease, opacity 0.1s ease;
 }
