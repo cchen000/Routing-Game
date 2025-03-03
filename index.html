@@ -22,7 +22,6 @@
                 <input type="number" id="game-number" min="1" value="1" class="game-number-input">
                 <span class="game-number-total">/ 1</span>
             </div>
-            <button id="restart-button" class="mode-button">重新开始 | Restart</button>
             
             <!-- 图形化状态指示器 | Graphical Status Indicators -->
             <div class="status-icons">
@@ -33,19 +32,12 @@
                     </div>
                     <div class="status-value"><span id="current-points">0</span></div>
                 </div>
-                <!-- 小棍模式选择器 | Stick Mode Selector -->
-                <div class="status-item" id="stick-mode-selector">
-                    <div class="status-icon-container">
-                        <div class="status-icon stick-icon"></div>
-                    </div>
-                    <div class="status-value"><span id="used-sticks">0</span></div>
-                </div>
                 <!-- 剩余小棍指示器 | Remaining Sticks Indicator -->
                 <div class="status-item" id="remaining-sticks-item">
                     <div class="status-icon-container">
                         <div class="progress-bar" id="remaining-sticks-bar"></div>
                     </div>
-                    <div class="status-value"><span id="remaining-sticks">10</span></div>
+                    <div class="status-value"><span id="remaining-sticks-count">10</span></div>
                 </div>
             </div>
         </div>
