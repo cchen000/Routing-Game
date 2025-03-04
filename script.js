@@ -690,7 +690,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         stickPreview.style.top = `${Math.min(y1, y2) * cellSize}px`;
                         stickPreview.style.height = `${cellSize}px`;
                         stickPreview.style.width = '6px';
-                        stickPreview.style.marginLeft = '-3px';
                     } else {
                         // 水平小棍
                         stickPreview.className = 'stick-preview horizontal';
@@ -698,7 +697,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         stickPreview.style.top = `${y1 * cellSize}px`;
                         stickPreview.style.width = `${cellSize}px`;
                         stickPreview.style.height = '6px';
-                        stickPreview.style.marginTop = '-3px';
                     }
                     
                     // 存储当前触摸的边缘点，以便在touchend时使用
