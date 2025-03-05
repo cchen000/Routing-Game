@@ -4,15 +4,15 @@
     position: relative;
     margin: 20px auto;
     width: max-content;
-    padding-left: 40px;   /* 增加左侧间距，从30px改为40px */
-    padding-bottom: 30px; /* x轴标签预留空间 | Space for x-axis labels */
+    padding-left: 40px;   /* 为y轴标签预留空间 | Space for y-axis labels */
+    padding-bottom: 30px; /* 为x轴标签预留空间 | Space for x-axis labels */
 }
 
 /* 网格容器 | Grid container */
 #grid-container {
     position: relative;
     width: 500px;   /* 10个间隔 * 50px | 10 intervals * 50px */
-    height: 500px;  /* 10个间隔 * 50px | 10 intervals * 50px */
+    height: 500px;  /* 保持正方形比例 | Maintain square ratio */
     margin: 0;
     background-color: rgb(255, 255, 255);
 }
@@ -39,14 +39,13 @@
     position: absolute;
     width: 16px;
     height: 16px;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background-color: #333; /* 更深的颜色 */
+    transform: translate(-50%, -50%);  /* 居中定位 | Center positioning */
+    border-radius: 50%;  /* 圆形外观 | Circular appearance */
+    background-color: #333;
     cursor: pointer;
-    z-index: 2;
-    transition: all 0.2s ease; /* 添加过渡效果 */
-    box-shadow: 0 0 3px rgba(0, 0, 0, 0.2); /* 添加阴影 */
-
+    z-index: 2;  /* 确保点位于小棍上层 | Ensure points are above sticks */
+    transition: all 0.2s ease;  /* 平滑过渡效果 | Smooth transition effect */
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);  /* 立体感阴影 | 3D shadow effect */
 }
 
 /* 激活点样式 | Active point style */
@@ -55,7 +54,6 @@
     width: 16px;
     height: 16px;
     box-shadow: 0 0 6px rgba(231, 76, 60, 0.5); /* 红色阴影 */
-
 }
 
 /* 小棍样式 | Stick styles */
@@ -86,9 +84,9 @@
 }
 
 .grid-item:hover {
-    background-color: #999;
+    /* background-color: #999; */
     transform: translate(-50%, -50%) scale(1.2);
-    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+    /* box-shadow: 0 0 4px rgba(0, 0, 0, 0.3); */
 }
 
 .grid-item.active:hover {
@@ -577,15 +575,12 @@
 
     /* 触摸区域优化 | Touch area optimization */
     .grid-item {
-        width: 24px;  /* 更合适的触摸区域 */
+        width: 24px;  /* 更大的触摸区域 | Larger touch area */
         height: 24px;
-        background-color: rgba(0, 0, 0, 0.03);
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        transition: all 0.2s ease;
+        background-color: rgba(0, 0, 0, 0.03);  /* 半透明背景 | Semi-transparent background */
     }
 
-    /* 实际显示的点 | Actual displayed point */
+    /* 实际显示点的样式 | Style for actual displayed point */
     .grid-item::after {
         content: '';
         position: absolute;
@@ -593,18 +588,14 @@
         left: 50%;
         width: 10px;
         height: 10px;
-        background-color: #666;  /* 更柔和的灰色 */
+        background-color: #666;
         border-radius: 50%;
         transform: translate(-50%, -50%);
         transition: all 0.2s ease;
         box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
     }
 
-    /* 触摸状态 | Touch state */
-    .grid-item:active {
-        background-color: rgba(0, 0, 0, 0.08);
-    }
-
+    /* 触摸状态反馈 | Touch state feedback */
     .grid-item:active::after {
         transform: translate(-50%, -50%) scale(1.2);
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
@@ -726,4 +717,17 @@
 #point-mode-selector,
 #remaining-sticks-item {
     transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+/* 为剩余小棍容器添加特殊的按压效果 */
+#remaining-sticks-item.pressed {
+    transform: scale(0.9);
+    background-color: rgba(74, 144, 226, 0.3) !important;
+    box-shadow: inset 0 0 1px rgba(74, 144, 226, 0.4) !important;
+}
+
+/* 为红点状态图标添加特殊的按压效果 */
+#point-mode-selector.pressed {
+    transform: scale(0.9);
+    box-shadow: inset 0 0 1px rgba(231, 76, 60, 0.4) !important;
 }

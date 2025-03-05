@@ -1,51 +1,71 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Game configuration | 游戏配置
-    const gridContainer = document.getElementById('grid-container');
-    const gridSize = 11;
-    let maxSticks = 10;      
-    let cellSize = getCellSize();
-    let currentMode = 'point';  // 'point' or 'stick' mode | 点模式或棍模式
-    let selectedPoint = null;   // Store the first selected point | 存储第一个选中的点
-    let currentGameNumber = 1;  // 当前游戏编号
+    const gridContainer     = document.getElementById('grid-container');
+    const gridSize          = 12;
+    let maxSticks           = 10;      
+    let cellSize            = getCellSize();
+    let currentMode         = 'point';  // 'point' or 'stick' mode | 点模式或棍模式
+    let selectedPoint       = null;   // Store the first selected point | 存储第一个选中的点
+    let currentGameNumber   = 1;  // 当前游戏编号
     
-    const sticks = [];  // 改为数组，用于存储小棍信息
-    let gamePoints = null;     // Store game point presets | 存储预设点位数据
-    let currentDifficulty = 'easy';
-    let activePoints = [];     // 存储激活的点，改为数组以保持顺序
+    const sticks            = [];  // 改为数组，用于存储小棍信息
+    let gamePoints          = null;     // Store game point presets | 存储预设点位数据
+    let currentDifficulty   = 'easy';
+    let activePoints        = [];     // 存储激活的点，改为数组以保持顺序
 
     // 添加点击事件相关变量
-    let lastClickTime = 0;     // 上次点击时间
-    let clickCount = 0;        // 点击计数
-    let longPressTimer = null; // 长按定时器
-    let isLongPress = false;   // 是否处于长按状态
-    const LONG_PRESS_DELAY = 500; // 长按触发延迟（毫秒）
+    let lastClickTime       = 0;     // 上次点击时间
+    let clickCount          = 0;        // 点击计数
+    let longPressTimer      = null; // 长按定时器
+    let isLongPress         = false;   // 是否处于长按状态
+    const LONG_PRESS_DELAY  = 500; // 长按触发延迟（毫秒）
     const RAPID_REMOVE_INTERVAL = 100; // 快速移除间隔（毫秒）
 
     // Difficulty settings for each level | 各难度级别的设置
     const difficultySettings = {
         easy: { maxSticks: 8 },
         medium: { maxSticks: 12 },
-        hard: { maxSticks: 15 }
+        hard: { maxSticks: 35 }
     };
 
+    // ==================== 核心类定义 | Core Class Definitions ====================
     /**
-     * Stick class for managing stick objects
-     * 小棍类，用于管理小棍对象
+     * 小棍类 - 用于创建和管理连接点之间的线段
+     * Stick class - Creates and manages line segments between points
      */
     class Stick {
+        /**
+         * 构造函数 - 初始化小棍的位置和属性
+         * Constructor - Initializes stick position and properties
+         * @param {number} x1 - 起始点X坐标 | Start point X coordinate
+         * @param {number} y1 - 起始点Y坐标 | Start point Y coordinate
+         * @param {number} x2 - 终点X坐标 | End point X coordinate
+         * @param {number} y2 - 终点Y坐标 | End point Y coordinate
+         */
         constructor(x1, y1, x2, y2) {
-            this.x1 = Math.min(x1, x2);
-            this.y1 = Math.min(y1, y2);
-            this.x2 = Math.max(x1, x2);
-            this.y2 = Math.max(y1, y2);
+            this.x1 = Math.min(x1, x2);  // 确保x1是较小值 | Ensure x1 is the smaller value
+            this.y1 = x1 < x2 ? y1 : y2;  // 对应的y值 | Corresponding y value
+            this.x2 = Math.max(x1, x2);  // 确保x2是较大值 | Ensure x2 is the larger value
+            this.y2 = x1 < x2 ? y2 : y1;  // 对应的y值 | Corresponding y value
             this.isVertical = x1 === x2;
-            this.id = this.generateId();
+            this.id = this.generateId();  // 生成唯一标识符 | Generate unique identifier
         }
 
+        /**
+         * 生成小棍的唯一标识符
+         * Generates unique identifier for the stick
+         * @returns {string} 唯一ID | Unique ID
+         */
         generateId() {
-            return `stick-${this.x1}-${this.y1}-${this.isVertical ? 'v' : 'h'}`;
+            return `${this.x1}-${this.y1}-${this.isVertical ? 'v' : 'h'}`;
         }
 
+        /**
+         * 比较两个小棍是否相同
+         * Compares if two sticks are the same
+         * @param {Stick} other - 要比较的另一个小棍 | Another stick to compare
+         * @returns {boolean} 是否相同 | Whether they are the same
+         */
         equals(other) {
             return this.id === other.id;
         }
@@ -60,7 +80,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.x-axis').style.width = `${containerSize}px`;
     document.querySelector('.y-axis').style.height = `${containerSize}px`;
 
-    // 创建网格线
+    // ==================== 游戏初始化函数 | Game Initialization Functions ====================
+    /**
+     * 创建网格线
+     * Creates grid lines for the game board
+     */
     function createGridLines() {
         // 创建水平线
         for (let i = 0; i < gridSize; i++) {
@@ -79,7 +103,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 创建交叉点
+    /**
+     * 创建交叉点
+     * Creates intersection points on the grid
+     */
     function createIntersectionPoints() {
         for (let y = 0; y < gridSize; y++) {
             for (let x = 0; x < gridSize; x++) {
@@ -97,7 +124,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 更新状态面板显示
+    // ==================== 游戏状态管理 | Game State Management ====================
+    /**
+     * 更新状态面板显示
+     * Updates the status panel display
+     */
     function updateStatusPanel() {
         const currentPointsElement = document.getElementById('current-points');
         const remainingSticksCountElement = document.getElementById('remaining-sticks-count');
@@ -194,14 +225,14 @@ document.addEventListener('DOMContentLoaded', () => {
                (y1 === y2 && Math.abs(x1 - x2) === 1);
     }
 
-    // 计算最大可用小棍数量
+    // 修改计算最大可用小棍数量的函数
     function calculateMaxSticks() {
         if (currentDifficulty === 'free') {
-            // 自由模式下没有限制
             return Infinity;
         } else {
-            // 根据难度设置返回最大小棍数量
-            return difficultySettings[currentDifficulty]?.maxSticks || 10;
+            const presets = gamePoints[currentDifficulty].presets;
+            const currentPreset = presets[currentGameNumber - 1];
+            return currentPreset.maxSticks;
         }
     }
 
@@ -690,7 +721,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         stickPreview.style.top = `${Math.min(y1, y2) * cellSize}px`;
                         stickPreview.style.height = `${cellSize}px`;
                         stickPreview.style.width = '6px';
-                        stickPreview.style.marginLeft = '-3px';
                     } else {
                         // 水平小棍
                         stickPreview.className = 'stick-preview horizontal';
@@ -698,7 +728,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         stickPreview.style.top = `${y1 * cellSize}px`;
                         stickPreview.style.width = `${cellSize}px`;
                         stickPreview.style.height = '6px';
-                        stickPreview.style.marginTop = '-3px';
                     }
                     
                     // 存储当前触摸的边缘点，以便在touchend时使用
@@ -857,20 +886,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function useDefaultGamePoints() {
         gamePoints = {
             "easy": {
-                "maxSticks": 8,
                 "presets": [
-                    [
-                        {"x": 2, "y": 2},
-                        {"x": 3, "y": 5}
-                    ],
-                    [
-                        {"x": 1, "y": 1},
-                        {"x": 4, "y": 4}
-                    ],
-                    [
-                        {"x": 5, "y": 2},
-                        {"x": 2, "y": 6}
-                    ]
+                    {
+                        "maxSticks": 6,
+                        "points": [
+                            {"x": 2, "y": 2},
+                            {"x": 3, "y": 5}
+                        ]
+                    },
+                    {
+                        "maxSticks": 8,
+                        "points": [
+                            {"x": 1, "y": 1},
+                            {"x": 4, "y": 4}
+                        ]
+                    }
                 ]
             },
             "medium": {
@@ -894,7 +924,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ]
             },
             "hard": {
-                "maxSticks": 15,
+                "maxSticks": 35,
                 "presets": [
                     [
                         {"x": 1, "y": 4},
@@ -934,7 +964,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameNumberInput.disabled = currentDifficulty === 'free';
     }
 
-    // 根据难度和游戏编号激活点
+    // 修改激活点的函数
     function activateRandomPoints(difficulty) {
         console.log('Activating points for difficulty:', difficulty);
         console.log('Current game number:', currentGameNumber);
@@ -949,19 +979,22 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const difficultyData = gamePoints[difficulty];
-        const presets = difficultyData.presets;
+        const presets = gamePoints[difficulty].presets;
 
         if (!presets || presets.length === 0) {
             console.error(`No presets available for difficulty: ${difficulty}`);
             return;
         }
 
-        // 使用游戏编号选择预设（减1是因为编号从1开始，而数组索引从0开始）
+        // 使用游戏编号选择预设
         const selectedPreset = presets[currentGameNumber - 1] || presets[0];
         console.log('Selected preset:', selectedPreset);
 
-        selectedPreset.forEach(point => {
+        // 更新最大小棍数量
+        maxSticks = selectedPreset.maxSticks;
+
+        // 激活预设中的点
+        selectedPreset.points.forEach(point => {
             const gridItem = document.querySelector(
                 `.grid-item[data-x="${point.x}"][data-y="${point.y}"]`
             );
@@ -1031,7 +1064,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 修改重置游戏状态函数
     function resetGame() {
         // 更新最大小棍数（自由模式下设为Infinity）
-        maxSticks = currentDifficulty === 'free' ? Infinity : gamePoints[currentDifficulty].maxSticks;
+        maxSticks = calculateMaxSticks();
         
         // 清除所有小棍
         sticks.length = 0;
@@ -1081,41 +1114,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const style = document.createElement('style');
         style.textContent = `
             @media (max-width: 768px) {
-                .grid-item {
-                    /* 增大点击区域但保持视觉大小合适 */
-                    width: 20px;
-                    height: 20px;
-                    margin: 0;
-                    transform: translate(-50%, -50%);
-                    position: absolute;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 2;
-                }
-                
-                .grid-item::after {
-                    content: '';
-                    width: 8px;
-                    height: 8px;
-                    background: #333;
-                    border-radius: 50%;
-                    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
-                    transition: all 0.2s ease;
-                }
-                
-                .grid-item.active::after {
-                    width: 12px;
-                    height: 12px;
-                    background-color: #e74c3c;
-                    box-shadow: 0 0 8px rgba(231, 76, 60, 0.5);
-                }
-                
-                .grid-item:active::after {
-                    box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
-                    transform: scale(1.2);
-                }
-                
                 .stick {
                     /* 调整小棍的定位以匹配新的点位置 */
                     transform-origin: center;

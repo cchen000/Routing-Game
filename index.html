@@ -5,6 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>网格路由小游戏 | Grid Routing Game</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- ==================== 基础设置 | Basic Settings ==================== -->
+    <style>
+        /* 移动端和PC端通用优化样式 | Common optimization styles for mobile and PC */
+        html {
+            touch-action: manipulation;
+            -webkit-text-size-adjust: 100%;  /* 防止iOS横屏时文字大小自动调整 | Prevent iOS text size auto-adjustment in landscape */
+            scroll-behavior: smooth;  /* 平滑滚动效果 | Smooth scrolling effect */
+        }
+        
+        /* 触摸反馈优化 - 禁用默认行为 | Touch feedback optimization - Disable default behaviors */
+        body, .grid-item, .stick, #grid-container * {
+            -webkit-tap-highlight-color: transparent;  /* 移除iOS点击高亮 | Remove iOS tap highlight */
+            -webkit-touch-callout: none;  /* 禁用长按菜单 | Disable long-press menu */
+        }
+        
+        /* 表单元素交互优化 | Form elements interaction optimization */
+        input, select, button {
+            user-select: auto;  /* 允许表单元素文本选择 | Enable text selection for form elements */
+            touch-action: auto;  /* 恢复默认触摸行为 | Restore default touch behavior */
+        }
+        
+        /* 移除未使用的类和合并相似样式 */
+        @media (min-width: 769px) {
+            /* 简化鼠标指针样式 */
+            body { cursor: default; }
+            
+            .grid-item, .stick, 
+            .grid-item.active, 
+            .grid-item.adjacent { 
+                cursor: pointer; 
+            }
+            
+            /* 移除未使用的 .grid-item.adjacent-highlight */
+            
+            input, select, button { cursor: auto; }
+        }
+        
+    </style>
 </head>
 <body>
     <div class="container">
@@ -56,21 +94,45 @@
         <!-- ==================== 游戏规则说明 | Game Rules ==================== -->
         <div class="rules-panel">
             <h2>游戏规则 | Game Rules</h2>
+            
             <!-- 游戏目标 | Game Objective -->
             <div class="rule-section">
                 <h3>游戏目标 | Objective</h3>
-                <p>使用小棍将所有红色点连接起来，形成一个连通的网络。</p>
-                <p>Connect all red points to form a connected network using sticks.</p>
+                <p>使用小棍将所有红色点连接起来，形成一个连通的网络。每个红点都必须能通过小棍到达其他任意红点。</p>
+                <p>Connect all red points to form a connected network using sticks. Each red point must be able to reach any other red point through the sticks.</p>
             </div>
             
             <!-- 难度设置 | Difficulty Settings -->
             <div class="rule-section">
                 <h3>难度设置 | Difficulty Levels</h3>
                 <ul>
-                    <li>简易模式 | Easy: 8根小棍，预设3个红点 | 8 sticks, 3 preset points</li>
-                    <li>中等模式 | Medium: 12根小棍，预设5个红点 | 12 sticks, 5 preset points</li>
-                    <li>困难模式 | Hard: 35根小棍，预设12个红点 | 35 sticks, 12 preset points</li>
-                    <li>自由模式 | Free Mode: 无限制小棍，可自由设置红点 | Unlimited sticks, free point placement</li>
+                    <li>简易模式 | Easy Mode: 
+                        <ul>
+                            <li>共6个关卡 | 6 levels in total</li>
+                            <li>每关配置不同数量的红点和小棍限制 | Different number of points and stick limits for each level</li>
+                            <li>小棍限制范围：8-24根 | Stick limits range: 8-24 sticks</li>
+                        </ul>
+                    </li>
+                    <li>中等模式 | Medium Mode:
+                        <ul>
+                            <li>共2个关卡 | 2 levels in total</li>
+                            <li>每关使用7个红点 | 7 points in each level</li>
+                            <li>小棍限制范围：22-27根 | Stick limits range: 22-27 sticks</li>
+                        </ul>
+                    </li>
+                    <li>困难模式 | Hard Mode:
+                        <ul>
+                            <li>共2个关卡 | 2 levels in total</li>
+                            <li>使用9-12个红点 | 9-12 points per level</li>
+                            <li>小棍限制范围：27-35根 | Stick limits range: 27-35 sticks</li>
+                        </ul>
+                    </li>
+                    <li>自由模式 | Free Mode:
+                        <ul>
+                            <li>无限制小棍数量 | Unlimited sticks</li>
+                            <li>可自由设置红点位置 | Free point placement</li>
+                        </ul>
+                    </li>
                 </ul>
             </div>
             
@@ -79,31 +141,37 @@
                 <h3>操作方法 | How to Play</h3>
                 <ol>
                     <li>选择游戏难度和关卡编号 | Select difficulty level and game number</li>
-                    <li>在自由模式下：| In Free Mode:</li>
-                    <ul>
-                        <li>默认为红点模式，点击格点可以设置/取消红点 | Default is Point Mode, click grid points to set/unset red points</li>
-                        <li>点击状态面板中的红点图标或小棍图标可以切换模式 | Click the point or stick icon in the status panel to switch modes</li>
-                    </ul>
-                    <li>在预设模式下（简易/中等/困难）：| In preset modes (Easy/Medium/Hard):</li>
-                    <ul>
-                        <li>自动加载预设红点 | Preset points are loaded automatically</li>
-                        <li>固定为小棍模式 | Fixed in stick mode</li>
-                    </ul>
-                    <li>小棍模式操作：| In stick mode:</li>
-                    <ul>
-                        <li>点击一个点后，相邻的可连接点会显示浅蓝色高亮 | After clicking a point, adjacent connectable points will be highlighted in light blue</li>
-                        <li>点击高亮点即可建立连接 | Click a highlighted point to create connection</li>
-                        <li>点击已放置的小棍可以移除 | Click placed sticks to remove them</li>
-                        <li>点击已选中的点可以取消选择 | Click selected point to deselect it</li>
-                    </ul>
+                    <li>自由模式操作 | In Free Mode:
+                        <ul>
+                            <li>默认为红点模式，点击格点可以设置/取消红点 | Default is Point Mode, click grid points to set/unset red points</li>
+                            <li>点击状态面板中的红点图标或小棍图标可以切换模式 | Click point or stick icon in status panel to switch modes</li>
+                            <li>长按图标可以快速移除多个红点或小棍 | Long press icons to quickly remove multiple points or sticks</li>
+                        </ul>
+                    </li>
+                    <li>预设模式操作（简易/中等/困难）| In preset modes (Easy/Medium/Hard):
+                        <ul>
+                            <li>自动加载预设红点 | Preset points are loaded automatically</li>
+                            <li>固定为小棍模式 | Fixed in stick mode</li>
+                            <li>需要在规定的小棍数量内完成连接 | Must complete connections within the stick limit</li>
+                        </ul>
+                    </li>
+                    <li>小棍模式操作 | In stick mode:
+                        <ul>
+                            <li>点击一个点后，相邻的可连接点会显示浅蓝色高亮 | After clicking a point, adjacent connectable points will be highlighted in light blue</li>
+                            <li>点击高亮点即可建立连接 | Click a highlighted point to create connection</li>
+                            <li>点击已放置的小棍可以移除 | Click placed sticks to remove them</li>
+                            <li>点击已选中的点可以取消选择 | Click selected point to deselect it</li>
+                            <li>长按小棍图标可以快速移除多个小棍 | Long press stick icon to quickly remove multiple sticks</li>
+                        </ul>
+                    </li>
                 </ol>
             </div>
             
             <!-- 胜利条件 | Victory Condition -->
             <div class="rule-section">
                 <h3>胜利条件 | Victory Condition</h3>
-                <p>当所有红色点通过小棍相互连通时获得胜利。每个红点都必须可以通过小棍到达其他任意红点。</p>
-                <p>Victory is achieved when all red points are interconnected through sticks. Each red point must be able to reach any other red point through the sticks.</p>
+                <p>在规定的小棍数量限制内，将所有红点连接成一个完整的网络。每个红点都必须能通过小棍到达其他所有红点。</p>
+                <p>Connect all red points into a complete network within the stick limit. Each red point must be able to reach all other red points through the sticks.</p>
             </div>
         </div>
     </div>
@@ -119,67 +187,143 @@
     
     <!-- ==================== 游戏数据 | Game Data ==================== -->
     <script type="text/javascript">
-        // 预设游戏点位数据 | Preset game points data
+        // 预设游戏点位数据对象 | Preset game points data object
         window.GAME_POINTS_DATA = {
-            // 简易模式配置 | Easy mode configuration
+            // 简易模式配置 - 包含多个预设关卡 | Easy mode configuration - Contains multiple preset levels
             "easy": {
-                "maxSticks": 8,
                 "presets": [
-                    // 关卡1 | Level 1
-                    [
-                        {"x": 2, "y": 2},
-                        {"x": 3, "y": 5},
-                        {"x": 7, "y": 2}
-                    ],
+                    // 每个关卡包含最大小棍数量限制和点位坐标 | Each level contains max sticks limit and point coordinates
+                    {
+                        "maxSticks": 8,  // 最大小棍数量 | Maximum number of sticks
+                        "points": [      // 点位坐标数组 | Array of point coordinates
+                            {"x": 2, "y": 2},  // 点1坐标 | Point 1 coordinates
+                            {"x": 3, "y": 5},  // 点2坐标 | Point 2 coordinates
+                            {"x": 7, "y": 2}   // 点3坐标 | Point 3 coordinates
+                        ]
+                    },
                     // 关卡2 | Level 2
-                    [
-                        {"x": 2, "y": 2},
-                        {"x": 3, "y": 5},
-                        {"x": 4, "y": 8}
-                    ],
+                    {
+                        "maxSticks": 9,
+                        "points": [
+                            {"x": 2, "y": 1},
+                            {"x": 3, "y": 5},
+                            {"x": 4, "y": 8}
+                        ]
+                    },
+                    // 关卡3 | Level 3
+                    {
+                        "maxSticks": 24,
+                        "points": [
+                            {"x": 2, "y": 2},
+                            {"x": 1, "y": 3},
+                            {"x": 10, "y": 3},
+                            {"x": 1, "y": 10},
+                            {"x": 9, "y": 10}
+                        ]
+                    },
+                    // 关卡4 | Level 4
+                    {
+                        "maxSticks": 23,
+                        "points": [
+                            {"x": 5, "y": 1},
+                            {"x": 1, "y": 3},
+                            {"x": 9, "y": 3},
+                            {"x": 5, "y": 7},
+                            {"x": 1, "y": 8},
+                            {"x": 9, "y": 8}
+                        ]
+                    },
+                    // 关卡5 | Level 5
+                    {
+                        "maxSticks": 12,
+                        "points": [
+                            {"x": 1, "y": 1},
+                            {"x": 3, "y": 3},
+                            {"x": 5, "y": 5},
+                            {"x": 7, "y": 7},
+                            {"x": 3, "y": 5}
+                        ]
+                    },
+                    // 关卡6 | Level 6
+                    {
+                        "maxSticks": 12,
+                        "points": [
+                            {"x": 2, "y": 8},
+                            {"x": 4, "y": 6},
+                            {"x": 6, "y": 4},
+                            {"x": 8, "y": 2},
+                            {"x": 5, "y": 5}
+                        ]
+                    },
                 ]
             },
             // 中等模式配置 | Medium mode configuration
             "medium": {
-                "maxSticks": 12,
                 "presets": [
                     // 关卡1 | Level 1
-                    [
-                        {"x": 1, "y": 1},
-                        {"x": 3, "y": 3},
-                        {"x": 5, "y": 5},
-                        {"x": 7, "y": 7},
-                        {"x": 3, "y": 5}
-                    ],
+                    {
+                        "maxSticks": 27,
+                        "points": [
+                            {"x": 3, "y": 1},
+                            {"x": 7, "y": 2},
+                            {"x": 10, "y": 5},
+                            {"x": 4, "y": 6},
+                            {"x": 8, "y": 9},
+                            {"x": 1, "y": 10},
+                            {"x": 9, "y": 10}
+                        ]
+                    },
                     // 关卡2 | Level 2
-                    [
-                        {"x": 2, "y": 8},
-                        {"x": 4, "y": 6},
-                        {"x": 6, "y": 4},
-                        {"x": 8, "y": 2},
-                        {"x": 5, "y": 5}
-                    ]
+                    {
+                        "maxSticks": 22,
+                        "points": [
+                            {"x": 2, "y": 1},
+                            {"x": 5, "y": 1},
+                            {"x": 7, "y": 4},
+                            {"x": 9, "y": 4},
+                            {"x": 7, "y": 6},
+                            {"x": 2, "y": 7},
+                            {"x": 9, "y": 9}
+                        ]
+                    }
                 ]
             },
             // 困难模式配置 | Hard mode configuration
             "hard": {
-                "maxSticks": 35,
                 "presets": [
                     // 关卡1 | Level 1
-                    [
-                        {"x": 1, "y": 4},
-                        {"x": 1, "y": 1},
-                        {"x": 2, "y": 7},
-                        {"x": 4, "y": 3},
-                        {"x": 5, "y": 9},
-                        {"x": 5, "y": 0},
-                        {"x": 6, "y": 8},
-                        {"x": 7, "y": 6},
-                        {"x": 8, "y": 0},
-                        {"x": 9, "y": 9},
-                        {"x": 10, "y": 5},
-                        {"x": 10, "y": 2}
-                    ]
+                    {
+                        "maxSticks": 35,
+                        "points": [
+                            {"x": 1, "y": 4},
+                            {"x": 1, "y": 1},
+                            {"x": 2, "y": 7},
+                            {"x": 4, "y": 3},
+                            {"x": 5, "y": 9},
+                            {"x": 5, "y": 0},
+                            {"x": 6, "y": 8},
+                            {"x": 7, "y": 6},
+                            {"x": 8, "y": 0},
+                            {"x": 9, "y": 9},
+                            {"x": 10, "y": 5},
+                            {"x": 10, "y": 2}
+                        ]
+                    },
+                    // 关卡2 | Level 2
+                    {
+                        "maxSticks": 27,
+                        "points": [
+                            {"x": 4, "y": 2},
+                            {"x": 9, "y": 2},
+                            {"x": 3, "y": 4},
+                            {"x": 6, "y": 4},
+                            {"x": 4, "y": 6},
+                            {"x": 6, "y": 6},
+                            {"x": 9, "y": 8},
+                            {"x": 1, "y": 10},
+                            {"x": 8, "y": 10}
+                        ]
+                    }
                 ]
             }
         };
