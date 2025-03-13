@@ -43,10 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
          * @param {number} y2 - 终点Y坐标 | End point Y coordinate
          */
         constructor(x1, y1, x2, y2) {
-            this.x1 = Math.min(x1, x2);  // 确保x1是较小值 | Ensure x1 is the smaller value
-            this.y1 = x1 < x2 ? y1 : y2;  // 对应的y值 | Corresponding y value
-            this.x2 = Math.max(x1, x2);  // 确保x2是较大值 | Ensure x2 is the larger value
-            this.y2 = x1 < x2 ? y2 : y1;  // 对应的y值 | Corresponding y value
+            this.x1 = Math.min(x1, x2);
+            this.y1 = Math.min(y1, y2);
+            this.x2 = Math.max(x1, x2);
+            this.y2 = Math.max(y1, y2);
             this.isVertical = x1 === x2;
             this.id = this.generateId();  // 生成唯一标识符 | Generate unique identifier
         }
