@@ -25,15 +25,17 @@ Connect all red highlighted points using a limited number of sticks.
 
 1. Clone the repository
 
-> git clone https://github.com/cchen000/Routing-Game.git
+```bash
+git clone https://github.com/cchen000/Routing-Game.git
+```
 
 2. Run with a local server
-> bash
-> python -m http.server 8000
 
+``` bash
+python -m http.server 8000
+```
 
-3. Visit in browser
-> http://localhost:8000
+3. Visit in browser (http://localhost:8000)
 
 
 
