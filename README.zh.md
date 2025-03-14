@@ -30,15 +30,17 @@
 ## 本地运行
 
 1. 克隆仓库
-> bash
-> git clone https://github.com/cchen000/Routing-Game.git
+
+```bash
+git clone https://github.com/cchen000/Routing-Game.git
+```
 
 2. 使用本地服务器运行
-> bash
-> python -m http.server 8000
 
-3. 在浏览器中访问
-> localhost:8000
+```bash
+python -m http.server 8000
+```
+3. 在浏览器中访问 (localhost:8000)
 
 
 ## 贡献
